@@ -1,5 +1,7 @@
 package travel.kiri.backend;
 
+import java.io.IOException;
+
 import com.sun.net.httpserver.*;
 
 /**
@@ -18,5 +20,15 @@ import com.sun.net.httpserver.*;
  *
  */
 public class Listener implements HttpHandler {
+
+	/**
+	 * Menghandle request HTTP yang data. Pada servicelistener.cc,
+	 * ini sama dengan fungsi answer_to_connection. Nantinya, akan
+	 * digunakan juga untuk menghandle request dari admin
+	 */
+	@Override
+	public void handle(HttpExchange t) throws IOException {
+		// TODO Auto-generated method stub
+	}
 
 }
