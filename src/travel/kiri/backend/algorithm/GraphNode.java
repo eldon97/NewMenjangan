@@ -34,7 +34,8 @@ public class GraphNode {
 	 * @param track the reverse-reference to the track information.
 	 */
 	public GraphNode(LatLon location, Track track) {
-		// FIXME implement this.
+		this.location = location;
+		this.track = track;
 	}
 	
 }
