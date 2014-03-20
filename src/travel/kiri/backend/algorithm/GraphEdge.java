@@ -8,8 +8,9 @@ package travel.kiri.backend.algorithm;
 public class GraphEdge {
 	/**
 	 * Determining the node that this edge points.
+	 * FIXME GraphNode diganti jadi int dl
 	 */
-	GraphNode node;
+	int node;
 	
 	/**
 	 * Determine the weight of this edge.
@@ -25,4 +26,32 @@ public class GraphEdge {
 	 *   another attribute.
 	 */
 	char type;
+	
+	
+	
+	public GraphEdge(int node, double weight, char type)
+	{
+		this.node=node;
+		this.weight=weight;
+		this.type = 0;
+	}
+	
+	public int getNode()
+	{
+		return node;
+	}
+	
+	/*FIXME Multiplier walkingnya dimasukin ke sini*/
+	public double getWeight()
+	{
+		return weight;
+	}
+	
+	public char getType()
+	{
+		return type;
+	}
+	
+	
+	
 }

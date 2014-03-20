@@ -1,6 +1,7 @@
 package travel.kiri.backend.algorithm;
 
 import java.util.AbstractSequentialList;
+import java.util.LinkedList;
 import java.util.ListIterator;
 
 /**
@@ -11,9 +12,18 @@ import java.util.ListIterator;
  * @author PascalAlfadian
  *
  * @param <E> The object type.
+ * 
+ * FIXME sementara pakai linked list punya java dulu, nanti ganti jadi AbstractSequentialList<E>
  */
-public class FastLinkedList<E> extends AbstractSequentialList<E>{
+public class FastLinkedList<E> extends LinkedList<E>{
 
+	@Override
+	public void push(E e)
+	{
+		this.addLast(e);
+	}
+	
+	/*
 	@Override
 	public ListIterator<E> listIterator(int index) {
 		// TODO Auto-generated method stub
@@ -25,5 +35,5 @@ public class FastLinkedList<E> extends AbstractSequentialList<E>{
 		// TODO Auto-generated method stub
 		return 0;
 	}
-
+*/
 }

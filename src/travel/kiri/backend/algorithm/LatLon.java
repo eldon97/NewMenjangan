@@ -24,6 +24,11 @@ public class LatLon {
 		this.lon = lon;
 	}
 	
+	public String toString()
+	{
+		return lat+" "+lon;
+	}
+	
 	/**
 	 * Computes the distance of this lat/lon to another one.
 	 * @param target the target lat/lon

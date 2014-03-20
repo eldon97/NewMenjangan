@@ -1,5 +1,7 @@
 package travel.kiri.backend.algorithm;
 
+import java.util.LinkedList;
+
 /**
  * Representing a graph node. Reference: worker.cc/GraphNode
  * @author PascalAlfadian
@@ -36,6 +38,38 @@ public class GraphNode {
 	public GraphNode(LatLon location, Track track) {
 		this.location = location;
 		this.track = track;
+		edges = new FastLinkedList<GraphEdge>();		
 	}
 	
+	public FastLinkedList<GraphEdge> getEdges()
+	{
+		return edges;
+	}
+	
+	public void push_back(int node, double weight, char type)
+	{
+		GraphEdge edge = new GraphEdge(node, weight, type);
+		edges.push(edge);
+	}
+	
+	public void link(GraphNode nextNode)
+	{
+		this.edges.addAll(nextNode.getEdges());
+	}
+	
+	public void clear()
+	{
+		edges.clear();
+	}
+	
+	public String toString()
+	{
+		String t="";
+		
+		t+=track + " - " + location;
+		
+		
+		
+		return t;		
+	}
 }

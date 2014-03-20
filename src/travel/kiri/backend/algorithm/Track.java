@@ -1,5 +1,6 @@
 package travel.kiri.backend.algorithm;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -32,9 +33,24 @@ public class Track {
 	
 	/**
 	 * Default constructor. Will initialize trackTypeId and trackId while leave the reset empty.
-	 * @param fullyQualifiedTrackId The fully qualified track id, i.e. trackTypeId.trackTypeId
+	 * @param fullyQualifiedTrackId The fully qualified track id, i.e. trackTypeId.trackId
 	 */
 	public Track(String fullyQualifiedTrackId) {
 		// FIXME implement this!
+		trackPath = new ArrayList<GraphNode>();
+		
+		String[] str = fullyQualifiedTrackId.split("\\.");
+		trackTypeId = str[0];
+		trackId = str [1];
+	}
+	
+	public String toString()
+	{
+		return trackTypeId+" . "+trackId;
+	}
+	
+	public void addNode(GraphNode node)
+	{
+		trackPath.add(node);
 	}
 }
