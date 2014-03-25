@@ -5,7 +5,7 @@ package travel.kiri.backend.algorithm;
  * @author PascalAlfadian
  *
  */
-public class GraphEdge {
+public class GraphEdge implements MemorySize{
 	/**
 	 * Determining the node that this edge points.
 	 * FIXME GraphNode diganti jadi int dl
@@ -25,11 +25,11 @@ public class GraphEdge {
 	 *   @obsolete Implement like this first, then see if this can be merged to
 	 *   another attribute.
 	 */
-	char type;
+	byte type;
 	
 	
 	
-	public GraphEdge(int node, double weight, char type)
+	public GraphEdge(int node, double weight, byte type)
 	{
 		this.node=node;
 		this.weight=weight;
@@ -47,9 +47,15 @@ public class GraphEdge {
 		return weight;
 	}
 	
-	public char getType()
+	public byte getType()
 	{
 		return type;
+	}
+
+	@Override
+	public int getMemorySize() {
+		// TODO Auto-generated method stub
+		return INT_SIZE + DOUBLE_SIZE + BYTE_SIZE;
 	}
 	
 	

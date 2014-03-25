@@ -17,7 +17,7 @@ public class Dijkstra {
 	 * @param computeMemorySize whether to compute the memory size required for this instance or not.
 	 */
 	
-	static final int DJIKSTRA_NULLNODE = -1;
+	public static final int DIJKSTRA_NULLNODE = -1;
 	
 	List<GraphNode> graph;
 	int startNode, finishNode;
@@ -33,13 +33,12 @@ public class Dijkstra {
 	static double penalty_transfer;
 	
 	
-	
-	Dijkstra(List<GraphNode> graph, int startNode, int finishNode, boolean computeMemorySize) {
+	//List<GraphNode> diubah ke Graph
+	public Dijkstra(Graph graph, int startNode, int finishNode, boolean computeMemorySize) {
 		// FIXME implement this
 		this.graph=graph;
 		this.startNode=startNode;
 		this.finishNode=finishNode;
-		//this.numOfNodes=graph.size()+2;
 		this.numOfNodes=graph.size();
 		this.nodesMinHeap = new NodeInfo[numOfNodes];
 		this.nodeInfoLinks = new NodeInfo[numOfNodes];
@@ -59,7 +58,7 @@ public class Dijkstra {
 	 * Complexity: O(|E| + |V| log |V|)
 	 * @return the distance from source, or {@link Double#POSITIVE_INFINITY} if no path was found.
 	 */
-	double runAlgorithm() {
+	public double runAlgorithm() {
 		// FIXME implement this
 		
 		heapsize = 0;
@@ -69,10 +68,9 @@ public class Dijkstra {
 			ni.baseIndex=i;
 			ni.heapIndex=i;
 			ni.distance=Double.POSITIVE_INFINITY;
-			ni.parent=DJIKSTRA_NULLNODE;
+			ni.parent=DIJKSTRA_NULLNODE;
 			nodesMinHeap[heapsize++] = ni;
 		}
-		System.out.println(heapsize);
 		nodeInfoLinks[startNode].distance = 0;
 		//heapify!
 		
@@ -86,7 +84,7 @@ public class Dijkstra {
 		do
 		{
 			currentNode = heapDeleteMin();
-			
+			System.out.println(currentNode);
 			if(currentNode == null || currentNode.baseIndex == finishNode)
 			{
 				break;
@@ -116,7 +114,7 @@ public class Dijkstra {
 	 * @param node the node to check.
 	 * @return the parent of requested node, or null if it has no parent.
 	 */
-	int getParent(int node) {
+	public int getParent(int node) {
 		// FIXME implement this
 		return nodeInfoLinks[node].parent;
 	}
@@ -126,12 +124,12 @@ public class Dijkstra {
 	 * @param node the node to check.
 	 * @return the distance of this node from the starting node.
 	 */
-	double getDistance(int node) {
+	public double getDistance(int node) {
 		// FIXME implement this
 		return nodeInfoLinks[node].distance;
 	}
 	
-	double getWeight(GraphEdge edge)
+	public double getWeight(GraphEdge edge)
 	{
 		switch (edge.type)
 		{
@@ -217,7 +215,7 @@ public class Dijkstra {
 		return ret;
 	}
 	
-	void setParam(double multiplier_walking, double penalty_transfer)
+	public void setParam(double multiplier_walking, double penalty_transfer)
 	{
 		//diset di edgenya
 		this.multiplier_walking=multiplier_walking;

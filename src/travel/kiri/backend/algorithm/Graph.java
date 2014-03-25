@@ -1,5 +1,6 @@
 package travel.kiri.backend.algorithm;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -11,7 +12,8 @@ import java.util.Iterator;
  * @author PascalAlfadian
  *
  */
-public class Graph {
+public class Graph extends ArrayList<GraphNode>{
+	/*
 	public void addNode(GraphNode node) {
 		// FIXME implement this
 	}
@@ -19,7 +21,7 @@ public class Graph {
 	public Iterator<GraphNode> getNodeIterator() {
 		// FIXME implement this
 		return null;
-	}
+	}*/
 	
 	/**
 	 * Searches for all nodes within a specified range
@@ -29,6 +31,17 @@ public class Graph {
 	 */
 	public Collection<GraphNode> rangeSearch(LatLon center, double distance) {
 		// FIXME implement this!
-		return null;	
+		
+		ArrayList<GraphNode> list = new ArrayList<GraphNode>();
+		
+		for(GraphNode node : this)
+		{
+			if(center.distanceTo(node.location)<=distance)
+			{
+				list.add(node);
+			}
+		}
+		
+		return list;	
 	}
 }

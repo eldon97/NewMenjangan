@@ -8,7 +8,7 @@ import java.util.List;
  * @author PascalAlfadian
  *
  */
-public class Track {
+public class Track implements MemorySize{
 	/**
 	 * Type of track ("angkot", "transjakarta", etc...)
 	 */
@@ -44,13 +44,56 @@ public class Track {
 		trackId = str [1];
 	}
 	
+	public String getTrackId()
+	{
+		return trackId;
+	}
+	
+	public String getTrackTypeId()
+	{
+		return trackTypeId;
+	}
+	
+	public void setPenalty(double penalty)
+	{
+		this.penalty=penalty;
+	}
+	
+	public double getPenalty()
+	{
+		return penalty;
+	}
+	
 	public String toString()
 	{
-		return trackTypeId+" . "+trackId;
+		String t =  trackTypeId+" . "+trackId+"\nNodes: "+trackPath.size()+"\n";
+		
+		//for(int i=0;i<trackPath.size();i++)
+		{
+			//t+=i+" "+trackPath.get(i)+"\n";
+		}
+		
+		return t;
 	}
 	
 	public void addNode(GraphNode node)
 	{
 		trackPath.add(node);
+	}
+	
+	public GraphNode getNode(int idx)
+	{
+		return trackPath.get(idx);
+	}
+
+	@Override
+	public int getMemorySize() {
+		// TODO Auto-generated method stub
+		return (trackId.length()+trackTypeId.length())*CHAR_SIZE + DOUBLE_SIZE;
+	}
+	
+	public int getSize()
+	{
+		return trackPath.size();
 	}
 }

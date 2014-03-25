@@ -5,7 +5,7 @@ package travel.kiri.backend.algorithm;
  * @author PascalAlfadian
  *
  */
-public class LatLon {
+public class LatLon implements MemorySize{
 	/**
 	 * Earth radius, in km.
 	 */
@@ -22,6 +22,16 @@ public class LatLon {
 	public LatLon(double lat, double lon) {
 		this.lat = lat;
 		this.lon = lon;
+	}
+	
+	public double getLat()
+	{
+		return lat;
+	}
+	
+	public double getLon()
+	{
+		return lon;
 	}
 	
 	public String toString()
@@ -45,5 +55,11 @@ public class LatLon {
 				* Math.cos(lat1) * Math.cos(lat2);
 		double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 		return EARTH_RADIUS * c;
+	}
+
+	@Override
+	public int getMemorySize() {
+		// TODO Auto-generated method stub
+		return 2 * DOUBLE_SIZE;
 	}
 }
