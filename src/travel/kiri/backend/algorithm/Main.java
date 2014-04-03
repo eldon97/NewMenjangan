@@ -5,8 +5,13 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Scanner;
 
+import java.io.IOException;
 import java.lang.instrument.Instrumentation;
+import java.net.InetSocketAddress;
 
+import com.sun.net.httpserver.HttpServer;
+
+import travel.kiri.backend.Listener;
 import travel.kiri.backend.Worker;
 
 
@@ -19,15 +24,31 @@ public class Main {
 		// TODO Auto-generated method stub
 		
 		Worker w = new Worker();
-		w.readGraph("etc/tracks.conf");
-
-		System.out.println(w);
+		long starttime = System.currentTimeMillis();
+		w.init(0.75, 0.1, 1, 0.15);
+		long endtime = System.currentTimeMillis();
 		
-		LatLon start = new LatLon(-6.944526, 107.580655);
-		LatLon finish = new LatLon(-6.937432, 107.560038);
+		System.out.println("Init Time: "+(endtime-starttime));
+		
+		HttpServer server;
+		try {
+			server = HttpServer.create(new InetSocketAddress(8000),0);
+			server.createContext("/test", new Listener(w));
+	        server.setExecutor(null);
+	        server.start();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        
+		
+		//-6.9037544,107.6090005
+		//-6.9034171,107.6108697
+		
+		LatLon start = new LatLon(-6.9037544,107.6090005);
+		LatLon finish = new LatLon(-6.9034171,107.6108697);
 		System.out.println(w.startComputing(start, finish, -1.0, -1.0, -1.0));
 		
-		System.out.println(start.distanceTo(finish));
 		
 		//System.out.println(w);
 		

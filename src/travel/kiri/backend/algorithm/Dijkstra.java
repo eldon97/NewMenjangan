@@ -84,7 +84,6 @@ public class Dijkstra {
 		do
 		{
 			currentNode = heapDeleteMin();
-			System.out.println(currentNode);
 			if(currentNode == null || currentNode.baseIndex == finishNode)
 			{
 				break;

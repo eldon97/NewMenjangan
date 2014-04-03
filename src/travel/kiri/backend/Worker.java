@@ -15,11 +15,10 @@ import travel.kiri.backend.algorithm.*;
  */
 public class Worker {
 
-	public double global_maximum_walking_distance;
-	public double global_maximum_transfer_distance;
-	public double global_multiplier_walking;
-	public double global_penalty_transfer;
-	public double global_places_threshold;
+	public double global_maximum_walking_distance = 0.75;
+	public double global_maximum_transfer_distance = 0.1;
+	public double global_multiplier_walking = 1;
+	public double global_penalty_transfer = 0.15;
 	public boolean global_verbose;
 	public int numberOfRequests;
 	//in millis, needs to be converted to seconds later
@@ -32,6 +31,19 @@ public class Worker {
 	{
 		tracks = new ArrayList();
 		nodes = new Graph();
+	}
+	
+	public void init(double maximum_walking_distance, double maximum_transfer_distance,
+			double multiplier_walking, double penalty_transfer)
+	{
+		global_maximum_walking_distance = maximum_walking_distance;
+		global_maximum_transfer_distance = maximum_transfer_distance;
+		global_multiplier_walking = multiplier_walking;
+		global_penalty_transfer = penalty_transfer;
+				
+		readGraph("etc/tracks.conf");
+		
+		linkAngkots();
 	}
 	
 	/**
@@ -173,6 +185,7 @@ public class Worker {
 					
 					steps.add(line.toString());
 					//tambah size
+					size += line.length();
 				}
 				
 				distance = (dijkstra.getDistance(lastNode) - dijkstra.getDistance(currentNode) ) / customMultiplierWalking;
@@ -206,6 +219,7 @@ public class Worker {
 				
 				steps.add(line.toString());
 				//tambah size
+				size += line.length();
 				
 				if(currentNode != startNode)
 				{
@@ -401,6 +415,29 @@ public class Worker {
 			return false;
 		}
 		return true;
+	}
+	
+	void linkAngkots()
+	{
+		int link = 0;
+		for(int i=0;i<nodes.size();i++)
+		{
+			for(int j=i+1; j<nodes.size();j++)
+			{
+				//if not in same track and both are transferNode
+				if(!(nodes.get(i).getTrack().equals(nodes.get(j))) && nodes.get(i).isTransferNode() && nodes.get(j).isTransferNode())
+				{
+					double distance = nodes.get(i).getLocation().distanceTo(nodes.get(j).getLocation());
+					if(distance < global_maximum_transfer_distance)
+					{
+						nodes.get(i).push_back(j, distance, (byte)1);
+						nodes.get(j).push_back(i, distance, (byte)1);
+						link++;
+					}
+				}
+			}
+		}
+		System.out.println("Angkot Links : "+link);
 	}
 	
 	public String toString()
