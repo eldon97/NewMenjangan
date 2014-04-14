@@ -53,41 +53,37 @@ public class Listener implements HttpHandler {
         String query = reqUri.getRawQuery();
         System.out.println(query);
         
-        Map<String, Object> params = new HashMap();
+        Map<String, String> params = new HashMap();
         
         parseQuery(query, params);
-        System.out.println(params.keySet());
-        System.out.println(params.values());
         
-        String response="";
+        StringBuilder response=new StringBuilder();
         
         try
         {
-        	Double slat = Double.parseDouble((String) params.get("slat"));
-            Double slon = Double.parseDouble((String) params.get("slon"));
 
-            Double flat = Double.parseDouble((String) params.get("flat"));
-            Double flon = Double.parseDouble((String) params.get("flon"));
-
-            LatLon start = new LatLon(slat, slon);
-            LatLon finish = new LatLon(flat, flon);
+            LatLon start = new LatLon(params.get("start"));
+            LatLon finish = new LatLon(params.get("finish"));
             
-            response = worker.startComputing(start, finish, -1.0,-1.0,-1.0);
+            response.append(worker.startComputing(start, finish, null, null,null));
         }
         catch(Exception ex)
         {
         	for(String key: params.keySet())
             {
-                response+=key+" : "+params.get(key)+"\n";
+                response.append(key);
+                response.append(" : ");
+                response.append(params.get(key));
+                response.append("\n");
             }
         }
 
         endTime=System.currentTimeMillis();
-        response+="\nTime: "+(endTime-startTime);
+        response.append("\nTime: "+(endTime-startTime));
 
         
         he.sendResponseHeaders(HttpURLConnection.HTTP_OK, response.length());
-        byte[] res = response.getBytes();
+        byte[] res = response.toString().getBytes();
 
         he.getResponseBody().write(res);
         he.close();
@@ -96,7 +92,7 @@ public class Listener implements HttpHandler {
         
     }
 
-    private void parseQuery(String query, Map<String, Object> params) throws UnsupportedEncodingException
+    private void parseQuery(String query, Map<String, String> params) throws UnsupportedEncodingException
     {
         if(query!=null)
         {
@@ -116,23 +112,7 @@ public class Listener implements HttpHandler {
                     value = URLDecoder.decode(param[1], System.getProperty("file.encoding"));
                 }
                 
-                if(params.containsKey(key))
-                {
-                    Object obj = params.get(key);
-                     if(obj instanceof List<?>) {
-                         List<String> values = (List<String>)obj;
-                         values.add(value);
-                     } else if(obj instanceof String) {
-                         List<String> values = new ArrayList<String>();
-                         values.add((String)obj);
-                         values.add(value);
-                         params.put(key, values);
-                     }
-                }
-                else
-                {
-                    params.put(key, value);
-                }
+                params.put(key, value);
             }
         }
     }

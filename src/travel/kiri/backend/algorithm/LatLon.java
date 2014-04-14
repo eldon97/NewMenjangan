@@ -24,6 +24,13 @@ public class LatLon implements MemorySize{
 		this.lon = lon;
 	}
 	
+	public LatLon(String latlon)
+	{
+		String[] ll = latlon.split(",");
+		this.lat = Double.parseDouble(ll[0]);
+		this.lon = Double.parseDouble(ll[1]);
+	}
+	
 	public double getLat()
 	{
 		return lat;

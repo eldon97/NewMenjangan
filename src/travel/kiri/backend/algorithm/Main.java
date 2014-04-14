@@ -25,7 +25,7 @@ public class Main {
 		
 		Worker w = new Worker();
 		long starttime = System.currentTimeMillis();
-		w.init(0.75, 0.1, 1, 0.15);
+		w.init(0.75, 0.1, 10, 0.15);
 		long endtime = System.currentTimeMillis();
 		
 		System.out.println("Init Time: "+(endtime-starttime));
@@ -45,9 +45,9 @@ public class Main {
 		//-6.9037544,107.6090005
 		//-6.9034171,107.6108697
 		
-		LatLon start = new LatLon(-6.9037544,107.6090005);
-		LatLon finish = new LatLon(-6.9034171,107.6108697);
-		System.out.println(w.startComputing(start, finish, -1.0, -1.0, -1.0));
+		LatLon start = new LatLon(-6.895034,107.603979);
+		LatLon finish = new LatLon(-6.926434,107.635790);
+		System.out.println(w.startComputing(start, finish, null, null, null));
 		
 		
 		//System.out.println(w);

@@ -35,7 +35,8 @@ public class Dijkstra {
 	
 	//List<GraphNode> diubah ke Graph
 	public Dijkstra(Graph graph, int startNode, int finishNode, boolean computeMemorySize) {
-		// FIXME implement this
+		// FIXME implement this		
+		
 		this.graph=graph;
 		this.startNode=startNode;
 		this.finishNode=finishNode;
@@ -83,9 +84,12 @@ public class Dijkstra {
 		
 		do
 		{
+			//printHeap();
 			currentNode = heapDeleteMin();
+			System.out.println("Current Node: "+currentNode);
 			if(currentNode == null || currentNode.baseIndex == finishNode)
 			{
+				System.out.println("AAAAAAAAAAAAAAAAAAAAA"+currentNode);
 				break;
 			}
 			
@@ -93,18 +97,30 @@ public class Dijkstra {
 			
 			for(GraphEdge edge : edges)
 			{
-				double weight = edge.getWeight();
-				
+				//double weight = edge.getWeight();
+				double weight = getWeight(edge);
+				//System.out.print((currentNode.distance)+"+"+(weight)+"="+(currentNode.distance + weight) +"<"+nodeInfoLinks[edge.node].distance+" "+(currentNode.distance + weight < nodeInfoLinks[edge.node].distance)+" ");
 				if(currentNode.distance + weight < nodeInfoLinks[edge.node].distance)
 				{
 					nodeInfoLinks[edge.node].distance = currentNode.distance+weight;
 					nodeInfoLinks[edge.node].parent = currentNode.baseIndex;
 					heapPercolateUp(nodeInfoLinks[edge.node].heapIndex);
+					//System.out.println("Edge: "+edge.node+" "+nodeInfoLinks[edge.node].distance);
+				}
+				else
+				{
+					//System.out.println();
 				}
 			}
 			
 		}while(currentNode.distance!=Double.POSITIVE_INFINITY);
 		
+		for(int i=0;i<nodeInfoLinks.length;i++)
+		{
+			//System.out.println("Node "+i+" : "+nodeInfoLinks[i]);
+		}
+		
+		System.out.println("Dist: "+nodeInfoLinks[finishNode].distance);
 		return nodeInfoLinks[finishNode].distance;
 	}
 	
@@ -162,7 +178,7 @@ public class Dijkstra {
 			}
 			
 			//kalau memang bukan yang paling kecil maka swap
-			if(ok = minIndex != index)
+			if(ok = (minIndex != index))
 			{
 				//swap!
 				NodeInfo temp = nodesMinHeap[index];
@@ -173,6 +189,8 @@ public class Dijkstra {
 				int tmp = nodesMinHeap[index].heapIndex;
 				nodesMinHeap[index].heapIndex = nodesMinHeap[minIndex].heapIndex;
 				nodesMinHeap[minIndex].heapIndex = tmp;
+				
+				index = minIndex;
 			}
 		}
 		
@@ -212,6 +230,18 @@ public class Dijkstra {
 		heapPercolateDown(0);
 		
 		return ret;
+	}
+	
+	public void printHeap()
+	{
+		System.out.println("========HEAP======");
+		
+		for(int i=0;i<5;i++)
+		{
+			System.out.println(nodesMinHeap[i]);
+		}
+		
+		System.out.println("==================");
 	}
 	
 	public void setParam(double multiplier_walking, double penalty_transfer)
