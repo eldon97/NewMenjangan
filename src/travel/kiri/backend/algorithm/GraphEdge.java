@@ -33,7 +33,7 @@ public class GraphEdge implements MemorySize{
 	{
 		this.node=node;
 		this.weight=weight;
-		this.type = 0;
+		this.type = type;
 	}
 	
 	public int getNode()
