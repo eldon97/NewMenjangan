@@ -98,7 +98,7 @@ public class Dijkstra {
 			for(GraphEdge edge : edges)
 			{
 				//double weight = edge.getWeight();
-				double weight = getWeight(edge);
+				double weight = calculateWeight(currentNode, edge);
 				//System.out.print((currentNode.distance)+"+"+(weight)+"="+(currentNode.distance + weight) +"<"+nodeInfoLinks[edge.node].distance+" "+(currentNode.distance + weight < nodeInfoLinks[edge.node].distance)+" ");
 				if(currentNode.distance + weight < nodeInfoLinks[edge.node].distance)
 				{
@@ -144,8 +144,10 @@ public class Dijkstra {
 		return nodeInfoLinks[node].distance;
 	}
 	
-	public double getWeight(GraphEdge edge)
+	public double calculateWeight(NodeInfo currentNode, GraphEdge edge)
 	{
+		// TODO tambahin 'tipe' walk
+		/*
 		switch (edge.type)
 		{
 		case 0:
@@ -154,6 +156,29 @@ public class Dijkstra {
 			return multiplier_walking * (penalty_transfer + edge.weight);
 		default: break;
 		}
+		*/
+		
+		Track track1 = graph.get(currentNode.baseIndex).getTrack();
+		Track track2 = graph.get(nodeInfoLinks[edge.node].baseIndex).getTrack();
+
+		
+		//WALK
+		if(track1==null && track2==null)
+		{
+			return multiplier_walking * (penalty_transfer + edge.weight);
+		}
+		// PINDAH ANGKOT
+		else if(track1!=track2)
+		{
+			return multiplier_walking * (penalty_transfer + edge.weight);
+		}
+		// MASIH DI ANGKOT
+		else 
+		if(track1.getTrackId().equals(track2.getTrackId()))
+		{
+			return edge.weight;
+		}
+		
 		return Double.POSITIVE_INFINITY;
 	}
 	
