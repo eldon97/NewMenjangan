@@ -2,8 +2,11 @@ package travel.kiri.backend;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Scanner;
 
 import travel.kiri.backend.algorithm.*;
@@ -80,7 +83,8 @@ public class Worker {
 		
 		//thread and stuff
 		startTime = System.currentTimeMillis();
-		
+		int memorySize = 0;
+		//if globalverbose
 		
 		//setting the parameters
 		if(customMaximumWalkingDistance == null || customMaximumWalkingDistance==-1)
@@ -116,13 +120,14 @@ public class Worker {
 		vNodes.add(new GraphNode(finish, null));
 
 		//Link startNode to other nodes by walking
+		GraphEdge mem_edge=new GraphEdge(-1,-1);
 		for(int i=0;i<nodes.size();i++)
 		{
 			double distance = start.distanceTo(nodes.get(i).getLocation());
-			//System.out.println(distance + "<" + customMaximumWalkingDistance + " " + (distance <= customMaximumWalkingDistance) + " " + nodes.get(i).isTransferNode());
 			if(distance <= customMaximumWalkingDistance && nodes.get(i).isTransferNode())
 			{
-				vNodes.get(startNode).push_back(i, customMultiplierWalking * distance, (byte)1);	
+				vNodes.get(startNode).push_back(i, customMultiplierWalking * distance);	
+				memorySize+=mem_edge.getMemorySize();
 			}
 		}
 
@@ -130,10 +135,10 @@ public class Worker {
 		for(int i=0;i<nodes.size();i++)
 		{
 			double distance = finish.distanceTo(nodes.get(i).getLocation());
-			//System.out.println(distance + "<" + customMaximumWalkingDistance + " " + (distance <= customMaximumWalkingDistance) + " " + nodes.get(i).isTransferNode());
 			if(distance <= customMaximumWalkingDistance && nodes.get(i).isTransferNode())
 			{
-				vNodes.get(i).push_back(endNode, customMultiplierWalking * distance, (byte)1);
+				vNodes.get(i).push_back(endNode, customMultiplierWalking * distance);
+				memorySize+=mem_edge.getMemorySize();
 			}
 		}
 		
@@ -141,24 +146,11 @@ public class Worker {
 			double distance = start.distanceTo(finish);
 			if(distance <= customMaximumWalkingDistance)
 			{
-				vNodes.get(startNode).push_back(endNode, customMultiplierWalking * distance, (byte)1);
-				vNodes.get(endNode).push_back(startNode, customMultiplierWalking * distance, (byte)1);
+				vNodes.get(startNode).push_back(endNode, customMultiplierWalking * distance);
+				vNodes.get(endNode).push_back(startNode, customMultiplierWalking * distance);
+				memorySize+=2*mem_edge.getMemorySize();
 			}
 		}
-
-		//HERE
-		System.out.println("====================");
-		
-		for(int i=0;i<vNodes.size();i++)
-		{
-			for(GraphEdge e:vNodes.get(i).getEdges())
-			{
-				//System.out.println(i+"->"+e.getNode());
-			}
-		}
-		
-		System.out.println("====================");
-		//
 		
 		Dijkstra dijkstra = new Dijkstra(vNodes, startNode, endNode, global_verbose);
 		if(global_verbose)
@@ -175,11 +167,11 @@ public class Worker {
 		double distance = 0;
 		StringBuilder line = new StringBuilder();
 		List<String> steps = new ArrayList<String>();
+		
+		DecimalFormat decformat = new DecimalFormat("#.00000", new DecimalFormatSymbols(Locale.US));
 
-		System.out.println(dijkstra.getParent(currentNode)+" "+dijkstra.DIJKSTRA_NULLNODE);
 		while(dijkstra.getParent(currentNode) != dijkstra.DIJKSTRA_NULLNODE)
 		{
-			//FIXME GANTI JADI STRING BUILDER (line.append dll)
 			lastNode = currentNode;
 			currentNode = dijkstra.getParent(currentNode);
 			
@@ -199,7 +191,6 @@ public class Worker {
 					line.append("\n");
 					
 					steps.add(line.toString());
-					//tambah size
 				}
 				
 				distance = (dijkstra.getDistance(lastNode) - dijkstra.getDistance(currentNode) ) / customMultiplierWalking;
@@ -216,7 +207,7 @@ public class Worker {
 				else
 				{
 					LatLon location = nodes.get(currentNode).getLocation();
-					line.append(location.getLat() +","+location.getLon()+" ");
+					line.append(decformat.format(location.getLat()) +","+decformat.format(location.getLon())+" ");
 				}
 				
 				if(lastNode == endNode)
@@ -226,18 +217,17 @@ public class Worker {
 				else
 				{
 					LatLon location = nodes.get(lastNode).getLocation();
-					line.append(location.getLat() +","+location.getLon());
+					line.append(decformat.format(location.getLat()) +","+decformat.format(location.getLon())+"");
 				}
 				
 				line.append("/" + distance + "/\n");
 				
 				steps.add(line.toString());
-				//tambah size
 				
 				if(currentNode != startNode)
 				{
 					LatLon location = nodes.get(currentNode).getLocation();
-					line = new StringBuilder(location.getLat()+","+location.getLon()+"/");
+					line = new StringBuilder(decformat.format(location.getLat()) +","+decformat.format(location.getLon())+"/");
 					distance = 0;
 					angkotLength = 1;
 				}
@@ -248,7 +238,7 @@ public class Worker {
 				distance += (dijkstra.getDistance(lastNode) - dijkstra.getDistance(currentNode)) / nodes.get(currentNode).getTrack().getPenalty();
 				
 				LatLon location = nodes.get(currentNode).getLocation();
-				line = new StringBuilder(location.getLat()+","+location.getLon()+" " + line);
+				line = new StringBuilder(decformat.format(location.getLat()) +","+decformat.format(location.getLon())+" " + line);
 				angkotLength++;
 				
 				//no place no code
@@ -369,7 +359,7 @@ public class Worker {
 						if(i>0)
 						{
 							double distance = node.getLocation().distanceTo(track.getNode(i-1).getLocation());
-							nodes.get(nodeIndex-1).push_back(nodeIndex, distance, (byte)0);
+							nodes.get(nodeIndex-1).push_back(nodeIndex, distance);
 						}
 					}
 					
@@ -388,7 +378,7 @@ public class Worker {
 						
 						double distance = first.getLocation().distanceTo(last.getLocation());
 						//pushback edge
-						nodes.get(lastIndex).push_back(firstIndex, distance, (byte)0);
+						nodes.get(lastIndex).push_back(firstIndex, distance);
 					}
 					
 					//transferNodes
@@ -446,17 +436,13 @@ public class Worker {
 					double distance = nodes.get(i).getLocation().distanceTo(nodes.get(j).getLocation());
 					if(distance < global_maximum_transfer_distance)
 					{
-						nodes.get(i).push_back(j, distance, (byte)1);
-						nodes.get(j).push_back(i, distance, (byte)1);
+						nodes.get(i).push_back(j, distance);
+						nodes.get(j).push_back(i, distance);
 						link++;
 					}
 				}
 			}
 		}
-		
-
-		
-		System.out.println("Angkot Links : "+link);
 	}
 	
 	public String toString()

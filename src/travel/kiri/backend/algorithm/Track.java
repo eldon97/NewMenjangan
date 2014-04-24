@@ -68,11 +68,6 @@ public class Track implements MemorySize{
 	{
 		String t =  trackTypeId+" . "+trackId+"\nNodes: "+trackPath.size()+"\n";
 		
-		//for(int i=0;i<trackPath.size();i++)
-		{
-			//t+=i+" "+trackPath.get(i)+"\n";
-		}
-		
 		return t;
 	}
 	

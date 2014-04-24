@@ -102,7 +102,7 @@ public class FastLinkedList<E> extends AbstractSequentialList<E>{
 
 		@Override
 		public void add(E e) {
-			throw new UnsupportedOperationException();
+			push(e);
 		}
 		
 	}

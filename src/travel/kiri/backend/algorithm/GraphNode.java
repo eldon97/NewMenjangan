@@ -47,9 +47,9 @@ public class GraphNode implements MemorySize{
 		return edges;
 	}
 	
-	public void push_back(int node, double weight, byte type)
+	public void push_back(int node, double weight)
 	{
-		GraphEdge edge = new GraphEdge(node, weight, type);
+		GraphEdge edge = new GraphEdge(node, weight);
 		edges.push(edge);
 	}
 	

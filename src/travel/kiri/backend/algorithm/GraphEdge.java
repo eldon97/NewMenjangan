@@ -25,15 +25,13 @@ public class GraphEdge implements MemorySize{
 	 *   @obsolete Implement like this first, then see if this can be merged to
 	 *   another attribute.
 	 */
-	byte type;
 	
 	
 	
-	public GraphEdge(int node, double weight, byte type)
+	public GraphEdge(int node, double weight)
 	{
 		this.node=node;
 		this.weight=weight;
-		this.type = type;
 	}
 	
 	public int getNode()
@@ -47,10 +45,6 @@ public class GraphEdge implements MemorySize{
 		return weight;
 	}
 	
-	public byte getType()
-	{
-		return type;
-	}
 
 	@Override
 	public int getMemorySize() {

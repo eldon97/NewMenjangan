@@ -8,7 +8,7 @@ import java.util.List;
  * @author PascalAlfadian
  *
  */
-public class Dijkstra {
+public class Dijkstra implements MemorySize{
 	/**
 	 * Class constructor. All allocations should go here.
 	 * @param graph the list of nodes, specifying the graph
@@ -26,6 +26,8 @@ public class Dijkstra {
 	NodeInfo[] nodesMinHeap;
 	int heapsize;
 	int numOfNodes;
+	
+	int memorySize;
 	/*
 	 * constants.. need to be set
 	 * */
@@ -50,6 +52,10 @@ public class Dijkstra {
 		}
 		
 		//FIXME Compute Memory Size
+		if(computeMemorySize)
+		{
+			memorySize = 3*INT_SIZE + nodeInfoLinks.length*(3*INT_SIZE + DOUBLE_SIZE);
+		}
 	}
 	
 	/**
@@ -84,12 +90,9 @@ public class Dijkstra {
 		
 		do
 		{
-			//printHeap();
 			currentNode = heapDeleteMin();
-			System.out.println("Current Node: "+currentNode);
 			if(currentNode == null || currentNode.baseIndex == finishNode)
 			{
-				System.out.println("AAAAAAAAAAAAAAAAAAAAA"+currentNode);
 				break;
 			}
 			
@@ -97,30 +100,17 @@ public class Dijkstra {
 			
 			for(GraphEdge edge : edges)
 			{
-				//double weight = edge.getWeight();
 				double weight = calculateWeight(currentNode, edge);
-				//System.out.print((currentNode.distance)+"+"+(weight)+"="+(currentNode.distance + weight) +"<"+nodeInfoLinks[edge.node].distance+" "+(currentNode.distance + weight < nodeInfoLinks[edge.node].distance)+" ");
 				if(currentNode.distance + weight < nodeInfoLinks[edge.node].distance)
 				{
 					nodeInfoLinks[edge.node].distance = currentNode.distance+weight;
 					nodeInfoLinks[edge.node].parent = currentNode.baseIndex;
 					heapPercolateUp(nodeInfoLinks[edge.node].heapIndex);
-					//System.out.println("Edge: "+edge.node+" "+nodeInfoLinks[edge.node].distance);
-				}
-				else
-				{
-					//System.out.println();
 				}
 			}
 			
 		}while(currentNode.distance!=Double.POSITIVE_INFINITY);
-		
-		for(int i=0;i<nodeInfoLinks.length;i++)
-		{
-			//System.out.println("Node "+i+" : "+nodeInfoLinks[i]);
-		}
-		
-		System.out.println("Dist: "+nodeInfoLinks[finishNode].distance);
+				
 		return nodeInfoLinks[finishNode].distance;
 	}
 	
@@ -257,17 +247,6 @@ public class Dijkstra {
 		return ret;
 	}
 	
-	public void printHeap()
-	{
-		System.out.println("========HEAP======");
-		
-		for(int i=0;i<5;i++)
-		{
-			System.out.println(nodesMinHeap[i]);
-		}
-		
-		System.out.println("==================");
-	}
 	
 	public void setParam(double multiplier_walking, double penalty_transfer)
 	{
@@ -304,5 +283,12 @@ public class Dijkstra {
 			return t;
 		}
 		
+	}
+
+
+	@Override
+	public int getMemorySize() {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 }

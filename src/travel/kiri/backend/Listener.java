@@ -51,8 +51,6 @@ public class Listener implements HttpHandler {
 		
         URI reqUri = he.getRequestURI();
         String query = reqUri.getRawQuery();
-        System.out.println(query);
-        
         Map<String, String> params = new HashMap();
         
         parseQuery(query, params);
@@ -79,7 +77,7 @@ public class Listener implements HttpHandler {
         }
 
         endTime=System.currentTimeMillis();
-        response.append("\nTime: "+(endTime-startTime));
+        //response.append("\nTime: "+(endTime-startTime));
 
         
         he.sendResponseHeaders(HttpURLConnection.HTTP_OK, response.length());
