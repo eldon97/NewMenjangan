@@ -59,7 +59,7 @@ public class Main {
 		
 		//-6.9037544,107.6090005
 		//-6.9034171,107.6108697
-		//System.out.println("OK");
+		System.out.println("OK");
 		//LatLon start = new LatLon(-6.895034,107.603979);
 		//LatLon finish = new LatLon(-6.926434,107.635790);
 		//System.out.println(w.startComputing(start, finish, null, null, null));
