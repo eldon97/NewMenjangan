@@ -1,11 +1,8 @@
 package travel.kiri.backend.algorithm;
 
 import java.util.AbstractSequentialList;
-import java.util.LinkedList;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
-
-import com.sun.org.apache.bcel.internal.generic.FADD;
 
 /**
  * A custom linked list that provides O(1) {@link #addAll(java.util.Collection)}

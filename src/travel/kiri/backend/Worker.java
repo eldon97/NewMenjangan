@@ -32,7 +32,7 @@ public class Worker {
 	
 	public Worker()
 	{
-		tracks = new ArrayList();
+		tracks = new ArrayList<Track>();
 		nodes = new Graph();
 	}
 	

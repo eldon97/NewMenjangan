@@ -1,6 +1,5 @@
 package travel.kiri.backend.algorithm;
 
-import java.util.LinkedList;
 
 /**
  * Representing a graph node. Reference: worker.cc/GraphNode

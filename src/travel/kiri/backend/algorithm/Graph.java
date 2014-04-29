@@ -2,7 +2,6 @@ package travel.kiri.backend.algorithm;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 
 /**
  * Basically, this class stores a graph, i.e. list of {@link GraphNode}s. However
