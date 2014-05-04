@@ -14,10 +14,7 @@ public class Main {
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 
-		long starttime = System.currentTimeMillis();
-		Worker w = new Worker();
-		w.init(0.75, 0.1, 10, 0.15);
-		long endtime = System.currentTimeMillis();
+		
 		
 		//System.out.println("Init Time: "+(endtime-starttime));
 		
@@ -37,8 +34,7 @@ public class Main {
 		HttpServer server;
 		try {
 			server = HttpServer.create(new InetSocketAddress(portNumber),0);
-			server.createContext("/", new Listener(w));
-			server.createContext("/admin", new AdminListener());
+			server.createContext("/admin", new AdminListener(server));
 	        server.setExecutor(null);
 	        server.start();
 		} catch (IOException e) {

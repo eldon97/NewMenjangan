@@ -1,5 +1,7 @@
 package travel.kiri.backend;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
@@ -9,6 +11,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 
 import travel.kiri.backend.algorithm.LatLon;
 
@@ -36,10 +39,17 @@ public class AdminListener implements HttpHandler {
 	 * ini sama dengan fungsi answer_to_connection. Nantinya, akan
 	 * digunakan juga untuk menghandle request dari admin
 	 */
+	HttpServer server;
+	double maximum_walking_distance;
+	double maximum_transfer_distance;
+	double multiplier_walking;
+	double penalty_transfer;
+	Map<String, String> map;
+	Worker w=null;
 	
-	public AdminListener()
+	public AdminListener(HttpServer server)
 	{
-		
+		this.server=server;
 	}
 	
 	@Override
@@ -56,19 +66,69 @@ public class AdminListener implements HttpHandler {
         
         StringBuilder response=new StringBuilder();
         String mode = params.get("mode");
+        
         if(mode!=null)
         {
-        	response.append(mode);
+        	if(mode.equals("start"))
+        	{
+        		if(w==null)
+        		{        			
+        			response.append("Please wait :)");
+        		}
+        		else
+        		{
+        			response.append("Worker already initialized");
+        		}
+        	}
+        	else if(mode.equals("stop"))
+        	{
+        		response.append("Stopped :(");
+        	}
+        }
+        else
+        {
+			response.append("Hello :)\n");
+			response.append("use parameter mode=start to initialize\n");
+			response.append("use parameter mode=stop to quit\n");
         }
 
+		
+		
         
         he.sendResponseHeaders(HttpURLConnection.HTTP_OK, response.length());
         byte[] res = response.toString().getBytes();
 
         he.getResponseBody().write(res);
         he.close();
-        
-        
+
+        if(mode!=null)
+    	{
+        	if(mode.equals("start"))
+        	{
+        		System.out.println("START");
+        		map = new HashMap();
+        		readConf("etc/mjnserve.conf");
+        		
+        		maximum_walking_distance = (map.get("maximum_walking_distance")!=null?Double.parseDouble(map.get("maximum_walking_distance")):0.75);
+                maximum_transfer_distance = (map.get("maximum_transfer_distance")!=null?Double.parseDouble(map.get("maximum_transfer_distance")):0.1);
+                multiplier_walking = (map.get("multiplier_walking")!=null?Double.parseDouble(map.get("multiplier_walking")):1);
+                penalty_transfer = (map.get("penalty_transfer")!=null?Double.parseDouble(map.get("penalty_transfer")):0.15);
+                
+                long starttime = System.currentTimeMillis();
+        		w = new Worker();     
+        		w.init(maximum_walking_distance, maximum_transfer_distance, multiplier_walking, penalty_transfer);
+        		long endtime = System.currentTimeMillis();
+        		
+        		long time = (endtime-starttime)/1000;
+
+    			server.createContext("/", new Listener(w));
+                System.out.println("DONE");
+        	}
+        	else if(mode.equals("stop"))
+        	{
+        		System.exit(0);
+        	}
+    	}
         
     }
 
@@ -96,5 +156,34 @@ public class AdminListener implements HttpHandler {
             }
         }
     }
+    
+    public boolean readConf(String filename)
+	{
+		try {
+			Scanner linescan = new Scanner(new File(filename));
+			String line, word[];
+			
+			while(linescan.hasNextLine())
+			{
+				line = linescan.nextLine();
+				if(line.length()>0 && line.charAt(0)!='#')
+				{
+					word = line.split(" = ");
+					
+					if(word.length>1)
+					{
+						map.put(word[0], word[1]);
+					}
+				}				
+			}
+			
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return false;
+		}
+		
+		return true;
+	}
 
 }
