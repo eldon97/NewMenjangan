@@ -5,57 +5,36 @@ import java.net.InetSocketAddress;
 
 import com.sun.net.httpserver.HttpServer;
 
-
 public class Main {
 
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
+	public static final int DEFAULT_PORT_NUMBER = 8080;
 
-		
-		
-		//System.out.println("Init Time: "+(endtime-starttime));
-		
-		int portNumber = 8080;
-		if(args.length>0)
-		{
-			try
-			{
+	public static void main(String[] args) {
+		int portNumber = DEFAULT_PORT_NUMBER;
+		if (args.length > 0) {
+			try {
 				portNumber = Integer.decode(args[0]);
-			}
-			catch(Exception ex)
-			{
-				
+			} catch (Exception ex) {
+				// void: revert to default.
 			}
 		}
-		
+		long starttime = System.currentTimeMillis();
+		Worker w = new Worker();
+		w.init(0.75, 0.1, 10, 0.15);
+		long endtime = System.currentTimeMillis();
+		System.out.println("Server loaded in " + (endtime - starttime)
+				+ " ms");
+
 		HttpServer server;
 		try {
-			server = HttpServer.create(new InetSocketAddress(portNumber),0);
+			server = HttpServer.create(new InetSocketAddress(portNumber), 0);
+			server.createContext("/", new Listener(w));
 			server.createContext("/admin", new AdminListener(server));
-	        server.setExecutor(null);
-	        server.start();
+			server.setExecutor(null);
+			server.start();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-        
-		
-		//-6.9037544,107.6090005
-		//-6.9034171,107.6108697
-		System.out.println("OK");
-		//LatLon start = new LatLon(-6.895034,107.603979);
-		//LatLon finish = new LatLon(-6.926434,107.635790);
-		//System.out.println(w.startComputing(start, finish, null, null, null));
-
 	}
-	
+
 }
-	
-	
-	
-	
-	
-	
