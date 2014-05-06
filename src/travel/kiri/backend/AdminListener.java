@@ -1,12 +1,8 @@
 package travel.kiri.backend;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
-import java.net.URI;
-import java.net.URLDecoder;
-import java.util.HashMap;
-import java.util.Map;
+import java.net.InetAddress;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -42,12 +38,6 @@ public class AdminListener implements HttpHandler {
 	 * menghandle request dari admin
 	 */
 	HttpServer server;
-	double maximum_walking_distance;
-	double maximum_transfer_distance;
-	double multiplier_walking;
-	double penalty_transfer;
-	Map<String, String> map;
-	Worker w = null;
 
 	public AdminListener(HttpServer server) {
 		this.server = server;
@@ -55,64 +45,44 @@ public class AdminListener implements HttpHandler {
 
 	@Override
 	public void handle(HttpExchange he) throws IOException {
-		URI reqUri = he.getRequestURI();
-		String query = reqUri.getRawQuery();
-		Map<String, String> params = new HashMap<String, String>();
-
-		parseQuery(query, params);
-
-		StringBuilder response = new StringBuilder();
-		String mode = params.get("mode");
-
-		if (mode != null) {
-			if (mode.equals("start")) {
-				if (w == null) {
-					response.append("Please wait :)");
-				} else {
-					response.append("Worker already initialized");
-				}
-			} else if (mode.equals("stop")) {
-				response.append("Stopped :(");
+		String query = he.getRequestURI().getRawQuery();
+		int responseStatus = HttpURLConnection.HTTP_FORBIDDEN;
+		String responseText = "";
+		
+		// TODO test this!
+		if (!he.getRemoteAddress().getAddress().equals(InetAddress.getLocalHost())) {
+			responseText = "Forbidden from your PC";
+		}
+		
+		if (query != null) {
+			if (query.equals("forceshutdown")) {
+				new Thread() {
+					@Override
+					public void run() {
+						try {
+							Thread.sleep(3000);
+						} catch (InterruptedException e) {
+							// nevermind, we'll exit immediately!
+						}
+						System.exit(0);						
+					}
+				}.start();
+				responseStatus = HttpURLConnection.HTTP_OK;
+				responseText = "Server will shutdown in 3 seconds";
+			} else if (query.equals("ping")) {
+				responseStatus = HttpURLConnection.HTTP_OK;
+				responseText = "pong";
+			} else {
+				responseText = "Invalid command: " + query;
 			}
 		} else {
-			response.append("Hello :)\n");
-			response.append("use parameter mode=start to initialize\n");
-			response.append("use parameter mode=stop to quit\n");
+			responseText = "Command must be provided";
 		}
 
-		he.sendResponseHeaders(HttpURLConnection.HTTP_OK, response.length());
-		byte[] res = response.toString().getBytes();
+		he.sendResponseHeaders(responseStatus, responseText.length());
+		byte[] res = responseText.toString().getBytes();
 
 		he.getResponseBody().write(res);
 		he.close();
-
-		if (mode != null) {
-			if (mode.equals("forceshutdown")) {
-				System.exit(0);
-			}
-		}
-	}
-
-	private void parseQuery(String query, Map<String, String> params)
-			throws UnsupportedEncodingException {
-		if (query != null) {
-			String pairs[] = query.split("[&]");
-			for (String pair : pairs) {
-				String param[] = pair.split("[=]");
-
-				String key = null;
-				String value = null;
-				if (param.length > 0) {
-					key = URLDecoder.decode(param[0],
-							System.getProperty("file.encoding"));
-				}
-				if (param.length > 1) {
-					value = URLDecoder.decode(param[1],
-							System.getProperty("file.encoding"));
-				}
-
-				params.put(key, value);
-			}
-		}
 	}
 }

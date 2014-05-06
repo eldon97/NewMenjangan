@@ -33,20 +33,15 @@ public class Worker {
 	List<Track> tracks;
 	Graph nodes;
 	
-	public Worker()
+	public Worker() throws FileNotFoundException, IOException
 	{
 		tracks = new ArrayList<Track>();
 		nodes = new Graph();
-	}
-	
-	// TODO put into constructor
-	public void init() throws FileNotFoundException, IOException
-	{
 		readConfiguration("etc/mjnserve.conf");
 		readGraph("etc/tracks.conf");
 		linkAngkots();
 	}
-	
+
 	private void readConfiguration(String filename) throws FileNotFoundException, IOException {
 		Properties properties = new Properties();
 		properties.load(new FileInputStream(filename));
