@@ -1,7 +1,5 @@
 package travel.kiri.backend;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
@@ -9,7 +7,6 @@ import java.net.URI;
 import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Scanner;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -90,35 +87,10 @@ public class AdminListener implements HttpHandler {
 		he.close();
 
 		if (mode != null) {
-			if (mode.equals("start")) {
-				System.out.println("START");
-				map = new HashMap<String, String>();
-				readConf("etc/mjnserve.conf");
-
-				maximum_walking_distance = (map.get("maximum_walking_distance") != null ? Double
-						.parseDouble(map.get("maximum_walking_distance"))
-						: 0.75);
-				maximum_transfer_distance = (map
-						.get("maximum_transfer_distance") != null ? Double
-						.parseDouble(map.get("maximum_transfer_distance"))
-						: 0.1);
-				multiplier_walking = (map.get("multiplier_walking") != null ? Double
-						.parseDouble(map.get("multiplier_walking")) : 1);
-				penalty_transfer = (map.get("penalty_transfer") != null ? Double
-						.parseDouble(map.get("penalty_transfer")) : 0.15);
-
-				long starttime = System.currentTimeMillis();
-				w = new Worker();
-				w.init(maximum_walking_distance, maximum_transfer_distance,
-						multiplier_walking, penalty_transfer);
-				long endtime = System.currentTimeMillis();
-
-				server.createContext("/", new ServiceListener(w));
-			} else if (mode.equals("stop")) {
+			if (mode.equals("forceshutdown")) {
 				System.exit(0);
 			}
 		}
-
 	}
 
 	private void parseQuery(String query, Map<String, String> params)
@@ -143,29 +115,4 @@ public class AdminListener implements HttpHandler {
 			}
 		}
 	}
-
-	public boolean readConf(String filename) {
-		try {
-			Scanner linescan = new Scanner(new File(filename));
-			String line, word[];
-
-			while (linescan.hasNextLine()) {
-				line = linescan.nextLine();
-				if (line.length() > 0 && line.charAt(0) != '#') {
-					word = line.split(" = ");
-
-					if (word.length > 1) {
-						map.put(word[0], word[1]);
-					}
-				}
-			}
-			linescan.close();
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-			return false;
-		}
-
-		return true;
-	}
-
 }

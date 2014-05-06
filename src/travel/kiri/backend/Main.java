@@ -1,5 +1,6 @@
 package travel.kiri.backend;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
@@ -9,7 +10,7 @@ public class Main {
 
 	public static final int DEFAULT_PORT_NUMBER = 8080;
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws FileNotFoundException, IOException {
 		int portNumber = DEFAULT_PORT_NUMBER;
 		if (args.length > 0) {
 			try {
@@ -20,7 +21,7 @@ public class Main {
 		}
 		long starttime = System.currentTimeMillis();
 		Worker w = new Worker();
-		w.init(0.75, 0.1, 10, 0.15);
+		w.init();
 		long endtime = System.currentTimeMillis();
 		System.out.println("Server loaded in " + (endtime - starttime)
 				+ " ms");

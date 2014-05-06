@@ -1,12 +1,15 @@
 package travel.kiri.backend;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Properties;
 import java.util.Scanner;
 
 import travel.kiri.backend.algorithm.*;
@@ -18,10 +21,10 @@ import travel.kiri.backend.algorithm.*;
  */
 public class Worker {
 
-	public double global_maximum_walking_distance = 0.75;
-	public double global_maximum_transfer_distance = 0.1;
-	public double global_multiplier_walking = 1;
-	public double global_penalty_transfer = 0.15;
+	public Double global_maximum_walking_distance;
+	public Double global_maximum_transfer_distance;
+	public Double global_multiplier_walking;
+	public Double global_penalty_transfer;
 	public boolean global_verbose;
 	public int numberOfRequests;
 	//in millis, needs to be converted to seconds later
@@ -36,19 +39,23 @@ public class Worker {
 		nodes = new Graph();
 	}
 	
-	public void init(double maximum_walking_distance, double maximum_transfer_distance,
-			double multiplier_walking, double penalty_transfer)
+	// TODO put into constructor
+	public void init() throws FileNotFoundException, IOException
 	{
-		global_maximum_walking_distance = maximum_walking_distance;
-		global_maximum_transfer_distance = maximum_transfer_distance;
-		global_multiplier_walking = multiplier_walking;
-		global_penalty_transfer = penalty_transfer;
-				
+		readConfiguration("etc/mjnserve.conf");
 		readGraph("etc/tracks.conf");
-		
 		linkAngkots();
 	}
 	
+	private void readConfiguration(String filename) throws FileNotFoundException, IOException {
+		Properties properties = new Properties();
+		properties.load(new FileInputStream(filename));
+		global_maximum_walking_distance = new Double(properties.getProperty("maximum_walking_distance"));
+		global_maximum_transfer_distance = new Double(properties.getProperty("maximum_transfer_distance"));
+		global_multiplier_walking = new Double(properties.getProperty("multiplier_walking"));
+		global_penalty_transfer = new Double(properties.getProperty("penalty_transfer"));
+	}
+
 	/**
 	 * Show the summary of internal track information to the log file. Useful
 	 * for debugging.
