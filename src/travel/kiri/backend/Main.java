@@ -25,8 +25,11 @@ public class Main {
 		HttpServer server;
 		try {
 			server = HttpServer.create(new InetSocketAddress(portNumber), 0);
-			server.createContext("/admin", new AdminListener(server));
-			server.createContext("/", new ServiceListener(new Worker()));
+			AdminListener admin = new AdminListener();
+			server.createContext("/admin", admin);
+			Worker worker = new Worker();
+			server.createContext("/", new ServiceListener(worker));
+			admin.setWorker(worker);
 			server.setExecutor(null);
 			server.start();
 		} catch (IOException e) {

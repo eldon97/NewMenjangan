@@ -54,17 +54,34 @@ public class Worker {
 	/**
 	 * Show the summary of internal track information to the log file. Useful
 	 * for debugging.
+	 * @return 
 	 */
-	void printTracksInfo() {
-		// FIXME implement this
-	}
+	String printTracksInfo() {
+		StringBuilder sb = new StringBuilder();
+		
+		sb.append("Loaded tracks information\n");
+		sb.append(tracks.size() + " tracks.\n");
+		sb.append(nodes.size() + " nodes.\n");
+		int transferNodes = 0;
+		int edgesCount = 0;
+		for (GraphNode node: nodes) {
+			if (node.isTransferNode()) {
+				transferNodes++;
+			}
+			edgesCount += node.getEdges().size();
+		}
+		sb.append(transferNodes + " transfer nodes.\n");
+		sb.append(edgesCount + " edges.\n");
 
-	/**
-	 * Show the internal places information (including the graph) to the log
-	 * file. Useful for debugging.
-	 */
-	void printPlacesInfo() {
-		// FIXME implement this
+		// TODO print memory usage
+
+		sb.append("Maximum walking = " + global_maximum_walking_distance + "\n");
+		sb.append("Maximum transfer = " + global_maximum_transfer_distance + "\n");
+		sb.append("Walking multiplier = " + global_multiplier_walking + "\n");
+		sb.append("Transfer penalty = " + global_penalty_transfer + "\n");
+		sb.append("Verbose = " + global_verbose + "\n");
+		
+		return sb.toString();
 	}
 	
 	/**
@@ -284,13 +301,9 @@ public class Worker {
 	 * Toggle the verbose flag, determining whether extra information is to be printed by the workers.
 	 * @return true if after the toggle, verbose is now turned on.
 	 */
-	boolean toggleVerbose() {
-		// FIXME implement this
-		global_verbose=!global_verbose;
-		
-		//give feedback here
-		
-		return global_verbose;
+	String toggleVerbose() {
+		global_verbose = !global_verbose;
+		return "Verbose is now " + global_verbose + "\n";
 	}
 
 	/**

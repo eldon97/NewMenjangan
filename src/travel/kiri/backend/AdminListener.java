@@ -6,7 +6,6 @@ import java.net.InetAddress;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
-import com.sun.net.httpserver.HttpServer;
 
 /**
  * <p>
@@ -30,17 +29,11 @@ import com.sun.net.httpserver.HttpServer;
  * @author PascalAlfadian
  * 
  */
-public class AdminListener implements HttpHandler {
-
-	/**
-	 * Menghandle request HTTP yang data. Pada servicelistener.cc, ini sama
-	 * dengan fungsi answer_to_connection. Nantinya, akan digunakan juga untuk
-	 * menghandle request dari admin
-	 */
-	HttpServer server;
-
-	public AdminListener(HttpServer server) {
-		this.server = server;
+public class AdminListener implements HttpHandler {	
+	Worker worker = null;
+	
+	public void setWorker(Worker worker) {
+		this.worker = worker;
 	}
 
 	@Override
@@ -49,36 +42,54 @@ public class AdminListener implements HttpHandler {
 		int responseStatus = HttpURLConnection.HTTP_FORBIDDEN;
 		String responseText = "";
 		
-		// TODO test this!
-		if (!he.getRemoteAddress().getAddress().equals(InetAddress.getLocalHost())) {
-			responseText = "Forbidden from your PC";
-		}
-		
-		if (query != null) {
-			if (query.equals("forceshutdown")) {
-				new Thread() {
-					@Override
-					public void run() {
-						try {
-							Thread.sleep(3000);
-						} catch (InterruptedException e) {
-							// nevermind, we'll exit immediately!
-						}
-						System.exit(0);						
-					}
-				}.start();
-				responseStatus = HttpURLConnection.HTTP_OK;
-				responseText = "Server will shutdown in 3 seconds";
-			} else if (query.equals("ping")) {
-				responseStatus = HttpURLConnection.HTTP_OK;
-				responseText = "pong";
-			} else {
-				responseText = "Invalid command: " + query;
+		try {
+			// TODO test this!
+			if (!he.getRemoteAddress().getAddress().equals(InetAddress.getLocalHost())) {
+				responseText = "Forbidden from your PC";
 			}
-		} else {
-			responseText = "Command must be provided";
+			
+			if (query != null) {
+				if (query.equals("forceshutdown")) {
+					new Thread() {
+						@Override
+						public void run() {
+							try {
+								Thread.sleep(3000);
+							} catch (InterruptedException e) {
+								// nevermind, we'll exit immediately!
+							}
+							System.exit(0);						
+						}
+					}.start();
+					responseStatus = HttpURLConnection.HTTP_OK;
+					responseText = "Server will shutdown in 3 seconds";
+				} else if (query.equals("tracksinfo")) {
+					if (worker != null) {
+						responseStatus = HttpURLConnection.HTTP_OK;
+						responseText = worker.printTracksInfo();
+					} else {
+						responseStatus = HttpURLConnection.HTTP_UNAVAILABLE;
+						responseText = "Worker is not ready.";
+					}
+				} else if (query.equals("toggleverbose")) {
+					if (worker != null) {
+						responseStatus = HttpURLConnection.HTTP_OK;
+						responseText = worker.toggleVerbose();
+					} else {
+						responseStatus = HttpURLConnection.HTTP_UNAVAILABLE;
+						responseText = "Worker is not ready.";
+					}					
+				} else {
+					responseText = "Invalid command: " + query;
+				}
+			} else {
+				responseText = "Command must be provided";
+			}
+		} catch (Exception e) {
+			responseStatus = HttpURLConnection.HTTP_INTERNAL_ERROR;
+			responseText = e.toString();
 		}
-
+			
 		he.sendResponseHeaders(responseStatus, responseText.length());
 		byte[] res = responseText.toString().getBytes();
 
