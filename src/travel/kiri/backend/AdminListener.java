@@ -78,7 +78,10 @@ public class AdminListener implements HttpHandler {
 					} else {
 						responseStatus = HttpURLConnection.HTTP_UNAVAILABLE;
 						responseText = "Worker is not ready.";
-					}					
+					}
+				} else if (query.equals("ping")) {
+					responseStatus = HttpURLConnection.HTTP_OK;
+					responseText = "pong\n";					
 				} else {
 					responseText = "Invalid command: " + query;
 				}
