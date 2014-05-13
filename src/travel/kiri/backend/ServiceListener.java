@@ -56,27 +56,23 @@ public class ServiceListener implements HttpHandler {
 
 		parseQuery(query, params);
 
-		StringBuilder response = new StringBuilder();
+		String responseText = "Internal error: not updated";
+		int responseCode = HttpURLConnection.HTTP_INTERNAL_ERROR;
 
 		try {
 
 			LatLon start = new LatLon(params.get("start"));
 			LatLon finish = new LatLon(params.get("finish"));
 
-			response.append(worker.startComputing(start, finish, null, null,
-					null));
+			responseText = worker.startComputing(start, finish, null, null,
+					null);
 		} catch (Exception ex) {
-			for (String key : params.keySet()) {
-				response.append(key);
-				response.append(" : ");
-				response.append(params.get(key));
-				response.append("\n");
-			}
+			responseText = ex.toString();
+			responseCode = HttpURLConnection.HTTP_INTERNAL_ERROR;
 		}
 
-		he.sendResponseHeaders(HttpURLConnection.HTTP_OK, response.length());
-		byte[] res = response.toString().getBytes();
-
+		he.sendResponseHeaders(responseCode, responseText.length());
+		byte[] res = responseText.getBytes();
 		he.getResponseBody().write(res);
 		he.close();
 
