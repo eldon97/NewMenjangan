@@ -11,6 +11,8 @@ import com.sun.net.httpserver.HttpServer;
 public class Main {
 
 	public static final int DEFAULT_PORT_NUMBER = 8000;
+	
+	public static String homeDirectory = null;
 
 	public static void main(String[] args) throws FileNotFoundException,
 			IOException {
@@ -27,11 +29,14 @@ public class Main {
 				}
 			}
 		}
-
-		long startTime = System.currentTimeMillis();
-		HttpServer server;
+		homeDirectory = System.getenv("NEWMJNSERVE_HOME");
+		if (homeDirectory == null) {
+			System.err.println("You need to set NEWMJNSERVE_HOME first!");
+			System.exit(1);
+		}
 		try {
-			server = HttpServer.create(new InetSocketAddress(portNumber), 0);
+			long startTime = System.currentTimeMillis();
+			HttpServer server = HttpServer.create(new InetSocketAddress(portNumber), 0);
 			AdminListener admin = new AdminListener();
 			server.createContext("/admin", admin);
 			Worker worker = new Worker();
@@ -39,12 +44,11 @@ public class Main {
 			admin.setWorker(worker);
 			server.setExecutor(null);
 			server.start();
+			long elapsedTime = System.currentTimeMillis() - startTime;
+			System.out.println("Server loaded in " + elapsedTime + " ms");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		long elapsedTime = System.currentTimeMillis() - startTime;
-		System.out.println("Server loaded in " + elapsedTime + " ms");
-
 	}
 
 	public static void checkStatus(int portNumber) {

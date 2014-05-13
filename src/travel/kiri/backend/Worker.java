@@ -37,8 +37,8 @@ public class Worker {
 	{
 		tracks = new ArrayList<Track>();
 		nodes = new Graph();
-		readConfiguration("etc/mjnserve.conf");
-		readGraph("etc/tracks.conf");
+		readConfiguration(Main.homeDirectory + "/etc/mjnserve.conf");
+		readGraph(Main.homeDirectory + "/etc/tracks.conf");
 		linkAngkots();
 	}
 
