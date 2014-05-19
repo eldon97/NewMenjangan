@@ -64,6 +64,7 @@ public class ServiceListener implements HttpHandler {
 			LatLon finish = new LatLon(params.get("finish"));
 			responseText = worker.startComputing(start, finish, null, null,
 					null);
+			responseCode = HttpURLConnection.HTTP_ACCEPTED;
 		} catch (NullPointerException npe) {
 			responseText = "Please provide start and finish location";
 			responseCode = HttpURLConnection.HTTP_BAD_REQUEST;
