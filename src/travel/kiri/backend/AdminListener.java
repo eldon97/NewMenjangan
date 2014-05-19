@@ -46,9 +46,7 @@ public class AdminListener implements HttpHandler {
 			// TODO test this!
 			if (!he.getRemoteAddress().getAddress().equals(InetAddress.getLocalHost())) {
 				responseText = "Forbidden from your PC";
-			}
-			
-			if (query != null) {
+			} else if (query != null) {
 				if (query.equals("forceshutdown")) {
 					new Thread() {
 						@Override
@@ -86,6 +84,7 @@ public class AdminListener implements HttpHandler {
 					responseText = "Invalid command: " + query;
 				}
 			} else {
+				responseStatus = HttpURLConnection.HTTP_BAD_REQUEST;
 				responseText = "Command must be provided";
 			}
 		} catch (Exception e) {

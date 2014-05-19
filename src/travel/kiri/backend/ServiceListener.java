@@ -60,14 +60,15 @@ public class ServiceListener implements HttpHandler {
 		int responseCode = HttpURLConnection.HTTP_INTERNAL_ERROR;
 
 		try {
-
 			LatLon start = new LatLon(params.get("start"));
 			LatLon finish = new LatLon(params.get("finish"));
-
 			responseText = worker.startComputing(start, finish, null, null,
 					null);
-		} catch (Exception ex) {
-			responseText = ex.toString();
+		} catch (NullPointerException npe) {
+			responseText = "Please provide start and finish location";
+			responseCode = HttpURLConnection.HTTP_BAD_REQUEST;
+		} catch (Exception e) {			
+			responseText = e.toString();
 			responseCode = HttpURLConnection.HTTP_INTERNAL_ERROR;
 		}
 
