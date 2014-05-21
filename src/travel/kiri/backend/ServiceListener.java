@@ -37,6 +37,12 @@ import com.sun.net.httpserver.HttpHandler;
  */
 public class ServiceListener implements HttpHandler {
 
+	public static final String PARAMETER_START = "start";
+	public static final String PARAMETER_FINISH = "finish";
+	public static final String PARAMETER_MAXIMUM_WALKING = "mw";
+	public static final String PARAMETER_WALKING_MULTIPLIER = "wm";
+	public static final String PARAMETER_PENALTY_TRANSFER = "pt";
+	
 	Worker worker;
 
 	public ServiceListener(Worker w) {
@@ -60,10 +66,15 @@ public class ServiceListener implements HttpHandler {
 		int responseCode = HttpURLConnection.HTTP_INTERNAL_ERROR;
 
 		try {
-			LatLon start = new LatLon(params.get("start"));
-			LatLon finish = new LatLon(params.get("finish"));
-			responseText = worker.startComputing(start, finish, null, null,
-					null);
+			LatLon start = new LatLon(params.get(PARAMETER_START));
+			LatLon finish = new LatLon(params.get(PARAMETER_FINISH));
+			String maximumWalking = params.get(PARAMETER_MAXIMUM_WALKING);
+			String walkingMultiplier = params.get(PARAMETER_WALKING_MULTIPLIER);
+			String penaltyTransfer = params.get(PARAMETER_PENALTY_TRANSFER);
+			responseText = worker.startComputing(start, finish,
+					maximumWalking == null ? null : new Double(maximumWalking),
+					walkingMultiplier == null ? null : new Double(walkingMultiplier),
+					penaltyTransfer == null ? null : new Double(penaltyTransfer));
 			responseCode = HttpURLConnection.HTTP_ACCEPTED;
 		} catch (NullPointerException npe) {
 			responseText = "Please provide start and finish location";
