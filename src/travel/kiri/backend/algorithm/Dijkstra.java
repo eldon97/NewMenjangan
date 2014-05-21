@@ -28,30 +28,27 @@ public class Dijkstra implements MemorySize{
 	int numOfNodes;
 	
 	int memorySize;
-	/*
-	 * constants.. need to be set
-	 * */
-	static double multiplier_walking;
-	static double penalty_transfer;
+
+	final double multiplierWalking;
+	final double penaltyTransfer;
 	
 	
 	//List<GraphNode> diubah ke Graph
-	public Dijkstra(Graph graph, int startNode, int finishNode, boolean computeMemorySize) {
-		// FIXME implement this		
-		
+	public Dijkstra(Graph graph, int startNode, int finishNode, boolean computeMemorySize, double multiplierWalking, double penaltyTransfer) {
 		this.graph=graph;
 		this.startNode=startNode;
 		this.finishNode=finishNode;
 		this.numOfNodes=graph.size();
 		this.nodesMinHeap = new NodeInfo[numOfNodes];
 		this.nodeInfoLinks = new NodeInfo[numOfNodes];
+		this.multiplierWalking = multiplierWalking;
+		this.penaltyTransfer = penaltyTransfer;
 		
 		for(int i=0;i<numOfNodes;i++)
 		{
 			nodeInfoLinks[i]=new NodeInfo();
 		}
 		
-		//FIXME Compute Memory Size
 		if(computeMemorySize)
 		{
 			memorySize = 3*INT_SIZE + nodeInfoLinks.length*(3*INT_SIZE + DOUBLE_SIZE);
@@ -66,7 +63,6 @@ public class Dijkstra implements MemorySize{
 	 * @return the distance from source, or {@link Double#POSITIVE_INFINITY} if no path was found.
 	 */
 	public double runAlgorithm() {
-		// FIXME implement this
 		
 		heapsize = 0;
 		for(int i=0;i<numOfNodes;i++)
@@ -120,7 +116,6 @@ public class Dijkstra implements MemorySize{
 	 * @return the parent of requested node, or null if it has no parent.
 	 */
 	public int getParent(int node) {
-		// FIXME implement this
 		return nodeInfoLinks[node].parent;
 	}
 
@@ -130,43 +125,30 @@ public class Dijkstra implements MemorySize{
 	 * @return the distance of this node from the starting node.
 	 */
 	public double getDistance(int node) {
-		// FIXME implement this
 		return nodeInfoLinks[node].distance;
 	}
 	
 	public double calculateWeight(NodeInfo currentNode, GraphEdge edge)
-	{
-		// TODO tambahin 'tipe' walk
-		/*
-		switch (edge.type)
-		{
-		case 0:
-			return edge.weight;
-		case 1: 
-			return multiplier_walking * (penalty_transfer + edge.weight);
-		default: break;
-		}
-		*/
-		
+	{		
 		Track track1 = graph.get(currentNode.baseIndex).getTrack();
 		Track track2 = graph.get(nodeInfoLinks[edge.node].baseIndex).getTrack();
 
 		
-		//WALK
-		if(track1==null && track2==null)
+		//WALK from start / to finish
+		if(track1==null || track2==null)
 		{
-			return multiplier_walking * (penalty_transfer + edge.weight);
+			return multiplierWalking * edge.weight;
 		}
 		// PINDAH ANGKOT
 		else if(track1!=track2)
 		{
-			return multiplier_walking * (penalty_transfer + edge.weight);
+			return multiplierWalking * (penaltyTransfer + edge.weight);
 		}
 		// MASIH DI ANGKOT
 		else 
 		if(track1.getTrackId().equals(track2.getTrackId()))
 		{
-			return edge.weight;
+			return edge.weight * track1.penalty;
 		}
 		
 		return Double.POSITIVE_INFINITY;
@@ -246,15 +228,6 @@ public class Dijkstra implements MemorySize{
 		
 		return ret;
 	}
-	
-	
-	public void setParam(double multiplier_walking, double penalty_transfer)
-	{
-		//diset di edgenya
-		this.multiplier_walking=multiplier_walking;
-		this.penalty_transfer=penalty_transfer;
-	}
-	
 	
 	String getString(int node)
 	{

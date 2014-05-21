@@ -22,6 +22,14 @@ public class Graph extends ArrayList<GraphNode>{
 		return null;
 	}*/
 	
+	public Graph() {
+		super();
+	}
+	
+	public Graph(int capacity) {
+		super(capacity);
+	}
+	
 	/**
 	 * Searches for all nodes within a specified range
 	 * @param center center of the circle
