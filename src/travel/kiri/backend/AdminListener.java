@@ -2,7 +2,6 @@ package travel.kiri.backend;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.InetAddress;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -44,8 +43,8 @@ public class AdminListener implements HttpHandler {
 		
 		try {
 			// TODO test this!
-			if (!he.getRemoteAddress().getAddress().equals(InetAddress.getLocalHost())) {
-				responseText = "Forbidden from your PC";
+			if (!he.getRemoteAddress().getAddress().equals(he.getLocalAddress().getAddress())) {
+				responseText = "Forbidden : " + he.getRemoteAddress();
 			} else if (query != null) {
 				if (query.equals("forceshutdown")) {
 					new Thread() {
