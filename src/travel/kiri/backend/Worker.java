@@ -111,10 +111,9 @@ public class Worker {
 	 * @return string containing the steps, as specified in Kalapa-Dago
 	 *         protocol.
 	 */
-	public String startComputing(LatLon start, LatLon finish,
+	public String findRoute(LatLon start, LatLon finish,
 			Double customMaximumWalkingDistance,
 			Double customMultiplierWalking, Double customPenaltyTransfer) {
-		// TODO rename this method to findRoute
 
 		long startTime, endTime;
 
@@ -413,7 +412,6 @@ public class Worker {
 			}
 			linescan.close();
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return false;
 		}

@@ -71,7 +71,7 @@ public class ServiceListener implements HttpHandler {
 			String maximumWalking = params.get(PARAMETER_MAXIMUM_WALKING);
 			String walkingMultiplier = params.get(PARAMETER_WALKING_MULTIPLIER);
 			String penaltyTransfer = params.get(PARAMETER_PENALTY_TRANSFER);
-			responseText = worker.startComputing(start, finish,
+			responseText = worker.findRoute(start, finish,
 					maximumWalking == null ? null : new Double(maximumWalking),
 					walkingMultiplier == null ? null : new Double(walkingMultiplier),
 					penaltyTransfer == null ? null : new Double(penaltyTransfer));
