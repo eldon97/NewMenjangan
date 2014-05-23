@@ -51,7 +51,7 @@ public class AdminListener implements HttpHandler {
 						@Override
 						public void run() {
 							try {
-								Thread.sleep(3000);
+								Thread.sleep(1000);
 							} catch (InterruptedException e) {
 								// nevermind, we'll exit immediately!
 							}
@@ -59,7 +59,7 @@ public class AdminListener implements HttpHandler {
 						}
 					}.start();
 					responseStatus = HttpURLConnection.HTTP_OK;
-					responseText = "Server will shutdown in 3 seconds";
+					responseText = "Server will shutdown in 1 second";
 				} else if (query.equals("tracksinfo")) {
 					if (worker != null) {
 						responseStatus = HttpURLConnection.HTTP_OK;
