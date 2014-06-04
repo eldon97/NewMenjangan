@@ -16,6 +16,8 @@ import travel.kiri.backend.algorithm.GraphEdge;
 import travel.kiri.backend.algorithm.GraphNode;
 import travel.kiri.backend.algorithm.LatLon;
 import travel.kiri.backend.algorithm.Track;
+import edu.wlu.cs.levy.CG.KDTree;
+import edu.wlu.cs.levy.CG.KeySizeException;
 
 /**
  * The class responsible for processing routing requests.
@@ -215,7 +217,7 @@ public class Worker {
 					line.insert(0, "/");
 					line.insert(0, t.getTrackTypeId());
 
-					line.append(String.format("%.3f", distance));
+					line.append(String.format(Locale.US, "%.3f", distance));
 					line.append("/");
 					// places line.append(b)
 					line.append("\n");
@@ -420,21 +422,84 @@ public class Worker {
 	}
 
 	void linkAngkots() {
-		for (int i = 0; i < nodes.size(); i++) {
-			for (int j = i + 1; j < nodes.size(); j++) {
+		
+		KDTree<GraphNodeContainer> kd=new KDTree<GraphNodeContainer>(2);
+		double minLat=Double.POSITIVE_INFINITY;
+		double minLon=Double.POSITIVE_INFINITY;
+		double maxLat=Double.NEGATIVE_INFINITY;
+		double maxLon=Double.NEGATIVE_INFINITY;
+		for(int i=0;i<nodes.size();i++)
+		{
+			GraphNode n = nodes.get(i);
+			double[] key = {n.getLocation().getLat(), n.getLocation().getLon()};
+			
+			if(minLat>n.getLocation().getLat())
+			{
+				minLat=n.getLocation().getLat();
+			}
+			if(maxLat<n.getLocation().getLat())
+			{
+				maxLat=n.getLocation().getLat();
+			}
+			if(minLon>n.getLocation().getLon())
+			{
+				minLon=n.getLocation().getLon();
+			}
+			if(maxLon<n.getLocation().getLon())
+			{
+				maxLon=n.getLocation().getLon();
+			}
+			
+			boolean ok = true;
+			while(ok)
+			{
+				try
+				{
+					kd.insert(key, new GraphNodeContainer(n,i));
+					ok=false;
+				}
+				catch(Exception e)
+				{
+					key[0]+=0.00001;
+					key[1]+=0.00001;
+				}
+			}
+		}
+		
+		LatLon minLoc = new LatLon(minLat, minLon);
+
+		double latPerKm = (maxLat-minLat)/minLoc.distanceTo(new LatLon(maxLat, minLon));
+		double lonPerKm = (maxLon-minLon)/minLoc.distanceTo(new LatLon(minLat, maxLon));
+		double threshold = 2;
+		for(int i=0;i<nodes.size();i++)
+		{
+			GraphNode n = nodes.get(i);
+			double[] lowk = {n.getLocation().getLat()-(threshold*latPerKm*global_maximum_transfer_distance), n.getLocation().getLon()-(threshold*lonPerKm*global_maximum_transfer_distance)};
+			double[] uppk = {n.getLocation().getLat()+(threshold*latPerKm*global_maximum_transfer_distance), n.getLocation().getLon()+(threshold*lonPerKm*global_maximum_transfer_distance)};
+			List<GraphNodeContainer> nearby=null;
+			try {
+				nearby =  kd.range(lowk, uppk);
+			} catch (KeySizeException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			for(GraphNodeContainer near: nearby)
+			{
 				// if not in same track and both are transferNode
-				if (!(nodes.get(i).getTrack().equals(nodes.get(j).getTrack()))
+				if (!(nodes.get(i).getTrack().equals(near.gn.getTrack()))
 						&& nodes.get(i).isTransferNode()
-						&& nodes.get(j).isTransferNode()) {
+						&& near.gn.isTransferNode()) {
 					double distance = nodes.get(i).getLocation()
-							.distanceTo(nodes.get(j).getLocation());
+							.distanceTo(near.gn.getLocation());
 					if (distance < global_maximum_transfer_distance) {
-						nodes.get(i).push_back(j, distance);
-						nodes.get(j).push_back(i, distance);
+						nodes.get(i).push_back(near.index, distance);
+						near.gn.push_back(i, distance);
 					}
 				}
 			}
 		}
+		
 	}
 
 	public String toString() {
@@ -443,6 +508,18 @@ public class Worker {
 			t += tr + "\n";
 		}
 		return t;
+	}
+	
+	private static class GraphNodeContainer
+	{
+		public GraphNode gn;
+		public int index;
+		
+		public GraphNodeContainer(GraphNode gn, int index)
+		{
+			this.gn=gn;
+			this.index=index;
+		}
 	}
 
 }
