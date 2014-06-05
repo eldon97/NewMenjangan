@@ -51,7 +51,7 @@ public class Dijkstra implements MemorySize{
 		
 		if(computeMemorySize)
 		{
-			memorySize = 3*INT_SIZE + nodeInfoLinks.length*(3*INT_SIZE + DOUBLE_SIZE);
+			memorySize = 3*MemorySize.INT_SIZE + nodeInfoLinks.length*(3*MemorySize.INT_SIZE+MemorySize.DOUBLE_SIZE);
 		}
 	}
 	
@@ -262,6 +262,7 @@ public class Dijkstra implements MemorySize{
 	@Override
 	public int getMemorySize() {
 		// TODO Auto-generated method stub
-		return 0;
+		return memorySize;
 	}
+
 }

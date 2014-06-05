@@ -8,7 +8,7 @@ import java.util.List;
  * @author PascalAlfadian
  *
  */
-public class Track implements MemorySize{
+public class Track{
 	/**
 	 * Type of track ("angkot", "transjakarta", etc...)
 	 */
@@ -79,12 +79,6 @@ public class Track implements MemorySize{
 	public GraphNode getNode(int idx)
 	{
 		return trackPath.get(idx);
-	}
-
-	@Override
-	public int getMemorySize() {
-		// TODO Auto-generated method stub
-		return (trackId.length()+trackTypeId.length())*CHAR_SIZE + DOUBLE_SIZE;
 	}
 	
 	public int getSize()

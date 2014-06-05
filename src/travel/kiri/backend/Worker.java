@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.Scanner;
+import java.util.logging.FileHandler;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 import travel.kiri.backend.algorithm.Dijkstra;
 import travel.kiri.backend.algorithm.Graph;
@@ -27,6 +30,8 @@ import edu.wlu.cs.levy.CG.KeySizeException;
  */
 public class Worker {
 
+	private final static Logger logger = Logger.getLogger(Worker.class.getName());
+	
 	public Double globalMaximumWalkingDistance;
 	public Double global_maximum_transfer_distance;
 	public Double globalMultiplierWalking;
@@ -41,11 +46,21 @@ public class Worker {
 	Graph nodes;
 
 	public Worker() throws FileNotFoundException, IOException {
+		FileHandler txtFile = new FileHandler("etc/log.txt");
+		txtFile.setFormatter(new SimpleFormatter());
+		logger.addHandler(txtFile);
+		long start = System.currentTimeMillis();
 		tracks = new ArrayList<Track>();
 		nodes = new Graph();
 		readConfiguration(Main.homeDirectory + "/etc/mjnserve.conf");
+		logger.info("Configuration done");
 		readGraph(Main.homeDirectory + "/etc/tracks.conf");
+		logger.info("Tracks done");
 		linkAngkots();
+		logger.info("Angkot links done");
+		long end = System.currentTimeMillis();
+		double time = (end-start)/1000.0;
+		logger.info("Init time = "+time+"s");
 	}
 
 	private void readConfiguration(String filename)
@@ -191,6 +206,8 @@ public class Worker {
 				global_verbose, customMultiplierWalking, customPenaltyTransfer);
 		if (global_verbose) {
 			// prints
+			memorySize += dijkstra.getMemorySize();
+			logger.info("Memory requirement: "+memorySize+" bytes");
 		}
 		dijkstra.runAlgorithm();
 
@@ -284,6 +301,14 @@ public class Worker {
 		endTime = System.currentTimeMillis();
 
 		// logs
+		long diff = endTime - startTime;
+		numberOfRequests++;
+		totalProcessTime+=diff;
+		
+		if(global_verbose)
+		{
+			logger.info("Worker ended, elapsed: "+diff+" milliseconds");
+		}
 
 		return retval.toString();
 	}

@@ -6,7 +6,7 @@ package travel.kiri.backend.algorithm;
  * @author PascalAlfadian
  *
  */
-public class GraphNode implements MemorySize{
+public class GraphNode{
 	/**
 	 * Location (lat/lon) of this node.
 	 */
@@ -85,18 +85,5 @@ public class GraphNode implements MemorySize{
 	public boolean isTransferNode()
 	{
 		return isTransferNode;
-	}
-
-	@Override
-	public int getMemorySize() {
-		// TODO Auto-generated method stub
-		int edgesize = 0;
-		
-		if(edges.size()>0)
-		{
-			edgesize = edges.size() * edges.get(0).getMemorySize();
-		}
-				
-		return location.getMemorySize() + BOOLEAN_SIZE+ edgesize;
 	}
 }

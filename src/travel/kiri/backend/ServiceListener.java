@@ -47,6 +47,7 @@ public class ServiceListener implements HttpHandler {
 
 	public ServiceListener(Worker w) {
 		this.worker = w;
+		//this.worker.global_verbose=true;
 	}
 
 	/**
