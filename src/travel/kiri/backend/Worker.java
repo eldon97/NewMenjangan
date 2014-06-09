@@ -20,6 +20,7 @@ import travel.kiri.backend.algorithm.GraphNode;
 import travel.kiri.backend.algorithm.LatLon;
 import travel.kiri.backend.algorithm.Track;
 import edu.wlu.cs.levy.CG.KDTree;
+import edu.wlu.cs.levy.CG.KeyDuplicateException;
 import edu.wlu.cs.levy.CG.KeySizeException;
 
 /**
@@ -46,7 +47,7 @@ public class Worker {
 	Graph nodes;
 
 	public Worker() throws FileNotFoundException, IOException {
-		FileHandler txtFile = new FileHandler("etc/log.txt");
+		FileHandler txtFile = new FileHandler("log/newmjnserve.log");
 		txtFile.setFormatter(new SimpleFormatter());
 		logger.addHandler(txtFile);
 		long start = System.currentTimeMillis();
@@ -478,16 +479,15 @@ public class Worker {
 			boolean ok = true;
 			while(ok)
 			{
-				try
-				{
-					kd.insert(key, new GraphNodeContainer(n,i));
-					ok=false;
-				}
-				catch(Exception e)
-				{
-					key[0]+=0.00001;
-					key[1]+=0.00001;
-				}
+					try {
+						kd.insert(key, new GraphNodeContainer(n,i));
+						ok=false;
+					} catch (KeySizeException e) {
+						e.printStackTrace();
+					} catch (KeyDuplicateException e) {
+						key[0]+=0.00001;
+						key[1]+=0.00001;
+					}					
 			}
 		}
 		
@@ -505,7 +505,6 @@ public class Worker {
 			try {
 				nearby =  kd.range(lowk, uppk);
 			} catch (KeySizeException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			
@@ -545,6 +544,44 @@ public class Worker {
 			this.gn=gn;
 			this.index=index;
 		}
+	}
+	
+	public String findNearbyTransports(LatLon start, Double customMaximumWalkingDistance)
+	{
+		if(customMaximumWalkingDistance == null || customMaximumWalkingDistance == -1)
+		{
+			customMaximumWalkingDistance = globalMaximumWalkingDistance;
+		}
+		
+		StringBuilder res = new StringBuilder();
+		
+		//for each tracks, check minimum distance
+		for(int idx = 0; idx<tracks.size();idx++)
+		{
+			Track t = tracks.get(idx);	
+			int tSize = t.getSize();
+			double min=Double.POSITIVE_INFINITY;
+			for(int i=0;i<tSize;i++)
+			{
+				double dist = start.distanceTo(t.getNode(i).getLocation());
+				if(dist<min)
+				{
+					min=dist;
+				}
+			}
+			
+			if(min<=customMaximumWalkingDistance)
+			{
+				res.append(t.getTrackTypeId());
+				res.append("/");
+				res.append(t.getTrackId());
+				res.append("/");
+				res.append(String.format(Locale.US, "%.3f", min));
+				res.append("\n");
+			}
+		}
+		
+		return res.toString();
 	}
 
 }

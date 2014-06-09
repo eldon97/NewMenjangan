@@ -66,25 +66,59 @@ public class ServiceListener implements HttpHandler {
 		String responseText = "Internal error: not updated";
 		int responseCode = HttpURLConnection.HTTP_INTERNAL_ERROR;
 
-		try {
-			LatLon start = new LatLon(params.get(PARAMETER_START));
-			LatLon finish = new LatLon(params.get(PARAMETER_FINISH));
+
+		try {		
+			LatLon start = null;
+			try
+			{
+				start = new LatLon(params.get(PARAMETER_START));
+			}
+			catch (NullPointerException e)
+			{
+				
+			}
+			
+			LatLon finish = null;
+			try
+			{
+				finish = new LatLon(params.get(PARAMETER_FINISH));
+			}
+			catch (NullPointerException e)
+			{
+				
+			}
+			
 			String maximumWalking = params.get(PARAMETER_MAXIMUM_WALKING);
 			String walkingMultiplier = params.get(PARAMETER_WALKING_MULTIPLIER);
 			String penaltyTransfer = params.get(PARAMETER_PENALTY_TRANSFER);
-			responseText = worker.findRoute(start, finish,
-					maximumWalking == null ? null : new Double(maximumWalking),
-					walkingMultiplier == null ? null : new Double(walkingMultiplier),
-					penaltyTransfer == null ? null : new Double(penaltyTransfer));
-			responseCode = HttpURLConnection.HTTP_ACCEPTED;
-		} catch (NullPointerException npe) {
-			responseText = "Please provide start and finish location";
-			responseCode = HttpURLConnection.HTTP_BAD_REQUEST;
-		} catch (Exception e) {			
+			if(start!=null && finish!=null)
+			{
+				//findroute
+				responseText = worker.findRoute(start, finish,
+						maximumWalking == null ? null : new Double(maximumWalking),
+						walkingMultiplier == null ? null : new Double(walkingMultiplier),
+						penaltyTransfer == null ? null : new Double(penaltyTransfer));
+				responseCode = HttpURLConnection.HTTP_ACCEPTED;
+			}
+			else if(start!=null && finish==null)
+			{
+				//findnearby
+				responseText = worker.findNearbyTransports(start, 
+						maximumWalking == null ? null : new Double(maximumWalking));	
+				responseCode = HttpURLConnection.HTTP_ACCEPTED;			
+			}
+			else
+			{
+				responseText = "Please provide start and finish location";
+				responseCode = HttpURLConnection.HTTP_BAD_REQUEST;
+			}
+			
+		} catch (Exception e) {
 			responseText = e.toString();
 			responseCode = HttpURLConnection.HTTP_INTERNAL_ERROR;
 		}
-
+		
+		
 		he.sendResponseHeaders(responseCode, responseText.length());
 		byte[] res = responseText.getBytes();
 		he.getResponseBody().write(res);
