@@ -47,7 +47,7 @@ public class Worker {
 	Graph nodes;
 
 	public Worker() throws FileNotFoundException, IOException {
-		FileHandler txtFile = new FileHandler("log/newmjnserve.log");
+		FileHandler txtFile = new FileHandler(Main.homeDirectory + "/log/newmjnserve.log");
 		txtFile.setFormatter(new SimpleFormatter());
 		logger.addHandler(txtFile);
 		long start = System.currentTimeMillis();
