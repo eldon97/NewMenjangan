@@ -27,11 +27,13 @@
 			<manifest>
 				<attribute name="Main-Class" value="travel.kiri.backend.Main" />
 			</manifest>
+			<zipgroupfileset dir="lib/" />
 		</jar>
 
 		<copy todir="${dist}/etc">
 			<fileset dir="etc" />
 		</copy>
+		
 	</target>
 
 	<target name="clean" description="clean up">
