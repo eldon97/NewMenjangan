@@ -5,10 +5,9 @@ package travel.kiri.backend.algorithm;
  * @author PascalAlfadian
  *
  */
-public class GraphEdge implements MemorySize{
+public class GraphEdge {
 	/**
 	 * Determining the node that this edge points.
-	 * FIXME GraphNode diganti jadi int dl
 	 */
 	int node;
 	
@@ -39,19 +38,8 @@ public class GraphEdge implements MemorySize{
 		return node;
 	}
 	
-	/*FIXME Multiplier walkingnya dimasukin ke sini*/
 	public double getWeight()
 	{
 		return weight;
 	}
-	
-
-	@Override
-	public int getMemorySize() {
-		// TODO Auto-generated method stub
-		return INT_SIZE + DOUBLE_SIZE + BYTE_SIZE;
-	}
-	
-	
-	
 }

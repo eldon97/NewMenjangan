@@ -15,7 +15,6 @@ import java.util.logging.SimpleFormatter;
 
 import travel.kiri.backend.algorithm.Dijkstra;
 import travel.kiri.backend.algorithm.Graph;
-import travel.kiri.backend.algorithm.GraphEdge;
 import travel.kiri.backend.algorithm.GraphNode;
 import travel.kiri.backend.algorithm.LatLon;
 import travel.kiri.backend.algorithm.Track;
@@ -101,8 +100,6 @@ public class Worker {
 		sb.append(transferNodes + " transfer nodes.\n");
 		sb.append(edgesCount + " edges.\n");
 
-		// TODO print memory usage
-
 		sb.append("Maximum walking = " + globalMaximumWalkingDistance + "\n");
 		sb.append("Maximum transfer = " + global_maximum_transfer_distance
 				+ "\n");
@@ -137,8 +134,6 @@ public class Worker {
 
 		// thread and stuff
 		startTime = System.currentTimeMillis();
-		int memorySize = 0;
-		// if globalverbose
 
 		// setting the parameters
 		if (customMaximumWalkingDistance == null
@@ -172,13 +167,11 @@ public class Worker {
 		vNodes.add(new GraphNode(finish, null));
 
 		// Link startNode to other nodes by walking
-		GraphEdge mem_edge = new GraphEdge(-1, -1);
 		for (int i = 0; i < nodes.size(); i++) {
 			double distance = start.distanceTo(nodes.get(i).getLocation());
 			if (distance <= customMaximumWalkingDistance
 					&& nodes.get(i).isTransferNode()) {
 				vNodes.get(startNode).push_back(i, distance);
-				memorySize += mem_edge.getMemorySize();
 			}
 		}
 
@@ -188,7 +181,6 @@ public class Worker {
 			if (distance <= customMaximumWalkingDistance
 					&& nodes.get(i).isTransferNode()) {
 				vNodes.get(i).push_back(endNode, distance);
-				memorySize += mem_edge.getMemorySize();
 			}
 		}
 
@@ -199,17 +191,11 @@ public class Worker {
 						customMultiplierWalking * distance);
 				vNodes.get(endNode).push_back(startNode,
 						customMultiplierWalking * distance);
-				memorySize += 2 * mem_edge.getMemorySize();
 			}
 		}
 
 		Dijkstra dijkstra = new Dijkstra(vNodes, startNode, endNode,
-				global_verbose, customMultiplierWalking, customPenaltyTransfer);
-		if (global_verbose) {
-			// prints
-			memorySize += dijkstra.getMemorySize();
-			logger.info("Memory requirement: "+memorySize+" bytes");
-		}
+				customMultiplierWalking, customPenaltyTransfer);
 		dijkstra.runAlgorithm();
 
 		// traversing
@@ -348,8 +334,6 @@ public class Worker {
 	 * @return the total process time.
 	 */
 	double getTotalProcessTime() {
-		// FIXME implement this
-		// converts the time to seconds
 		return totalProcessTime / 1000.0;
 	}
 
@@ -417,10 +401,10 @@ public class Worker {
 					word = scan.next();
 					String[] tnodes = word.split(",");
 					// nodes
-					int till, start, finish;
+					int start, finish;
 					for (int i = 0; i < tnodes.length; i++) {
 						// if a-b
-						if ((till = tnodes[i].indexOf("-")) != -1) {
+						if (tnodes[i].indexOf("-") != -1) {
 							String[] sf = tnodes[i].split("-");
 							start = Integer.parseInt(sf[0]);
 							finish = Integer.parseInt(sf[1]);

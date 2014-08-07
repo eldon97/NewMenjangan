@@ -8,14 +8,7 @@ import java.util.List;
  * @author PascalAlfadian
  *
  */
-public class Dijkstra implements MemorySize{
-	/**
-	 * Class constructor. All allocations should go here.
-	 * @param graph the list of nodes, specifying the graph
-	 * @param startNode reference to the starting node
-	 * @param finishNode reference to the finish node
-	 * @param computeMemorySize whether to compute the memory size required for this instance or not.
-	 */
+public class Dijkstra {
 	
 	public static final int DIJKSTRA_NULLNODE = -1;
 	
@@ -33,8 +26,13 @@ public class Dijkstra implements MemorySize{
 	final double penaltyTransfer;
 	
 	
-	//List<GraphNode> diubah ke Graph
-	public Dijkstra(Graph graph, int startNode, int finishNode, boolean computeMemorySize, double multiplierWalking, double penaltyTransfer) {
+	/**
+	 * Class constructor. All allocations should go here.
+	 * @param graph the list of nodes, specifying the graph
+	 * @param startNode reference to the starting node
+	 * @param finishNode reference to the finish node
+	 */
+	public Dijkstra(Graph graph, int startNode, int finishNode, double multiplierWalking, double penaltyTransfer) {
 		this.graph=graph;
 		this.startNode=startNode;
 		this.finishNode=finishNode;
@@ -49,10 +47,6 @@ public class Dijkstra implements MemorySize{
 			nodeInfoLinks[i]=new NodeInfo();
 		}
 		
-		if(computeMemorySize)
-		{
-			memorySize = 3*MemorySize.INT_SIZE + nodeInfoLinks.length*(3*MemorySize.INT_SIZE+MemorySize.DOUBLE_SIZE);
-		}
 	}
 	
 	/**
@@ -257,12 +251,4 @@ public class Dijkstra implements MemorySize{
 		}
 		
 	}
-
-
-	@Override
-	public int getMemorySize() {
-		// TODO Auto-generated method stub
-		return memorySize;
-	}
-
 }
