@@ -1,0 +1,60 @@
+#!/bin/bash
+#
+#       /etc/rc.d/init.d/<servicename>
+#
+#       <description of the *service*>
+#       <any general comments about this init script>
+#
+# <tags -- see below for tag definitions.  *Every line* from the top
+#  of the file to the end of the tags section must begin with a #
+#  character.  After the tags section, there should be a blank line.
+#  This keeps normal comments in the rest of the file from being
+#  mistaken for tags, should they happen to fit the pattern.>
+
+# Source function library.
+. /etc/init.d/functions
+
+export NEWMJNSERVE_HOME=/vagrant/NewMenjangan
+
+start() {
+        echo -n "Starting newmjnserve: "
+		java -jar $NEWMJNSERVE_HOME/NewMenjangan.jar -c && return 1
+        nohup java -jar $NEWMJNSERVE_HOME/NewMenjangan.jar &
+        touch /var/lock/subsys/newmjnserve
+        return 0
+}
+
+stop() {
+        echo -n "Shutting down newmjnserve: "
+        java -jar $NEWMJNSERVE_HOME/NewMenjangan.jar -s
+		[ "$?" = 2 ] && return 2
+        rm -f /var/lock/subsys/newmjnserve
+        return <return code of stopping daemon>
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    status)
+		java -jar $NEWMJNSERVE_HOME/NewMenjangan.jar -c
+		;;
+    restart)
+        stop
+        start
+        ;;
+    reload)
+		stop
+		start
+        ;;
+    condrestart)
+        [ -f /var/lock/subsys/<service> ] && restart || :
+    *)
+        echo "Usage: <servicename> {start|stop|status|reload|restart"
+        exit 1
+        ;;
+esac
+exit $?
