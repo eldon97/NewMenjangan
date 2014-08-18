@@ -35,7 +35,6 @@ public class Main {
 			System.exit(1);
 		}
 		try {
-			long startTime = System.currentTimeMillis();
 			HttpServer server = HttpServer.create(new InetSocketAddress(portNumber), 0);
 			AdminListener admin = new AdminListener();
 			server.createContext("/admin", admin);
@@ -44,8 +43,6 @@ public class Main {
 			admin.setWorker(worker);
 			server.setExecutor(null);
 			server.start();
-			long elapsedTime = System.currentTimeMillis() - startTime;
-			System.out.println("Server loaded in " + elapsedTime + " ms");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
