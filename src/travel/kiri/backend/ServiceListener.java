@@ -66,7 +66,6 @@ public class ServiceListener implements HttpHandler {
 		String responseText = "Internal error: not updated";
 		int responseCode = HttpURLConnection.HTTP_INTERNAL_ERROR;
 
-
 		try {		
 			LatLon start = null;
 			try

@@ -36,7 +36,7 @@ public class Worker {
 	public Double global_maximum_transfer_distance;
 	public Double globalMultiplierWalking;
 	public Double globalPenaltyTransfer;
-	public boolean global_verbose;
+	public boolean verbose;
 	
 	public int numberOfRequests;
 	// in millis, needs to be converted to seconds later
@@ -61,6 +61,7 @@ public class Worker {
 		long end = System.currentTimeMillis();
 		double time = (end-start)/1000.0;
 		logger.info("Init time = "+time+"s");
+		verbose = true;
 	}
 
 	private void readConfiguration(String filename)
@@ -105,7 +106,7 @@ public class Worker {
 				+ "\n");
 		sb.append("Walking multiplier = " + globalMultiplierWalking + "\n");
 		sb.append("Transfer penalty = " + globalPenaltyTransfer + "\n");
-		sb.append("Verbose = " + global_verbose + "\n");
+		sb.append("Verbose = " + verbose + "\n");
 
 		return sb.toString();
 	}
@@ -132,6 +133,12 @@ public class Worker {
 
 		long startTime, endTime;
 
+		if(verbose)
+		{
+			logger.info("Worker started for " + start + " to " + finish);
+		}
+
+		
 		// thread and stuff
 		startTime = System.currentTimeMillis();
 
@@ -292,7 +299,7 @@ public class Worker {
 		numberOfRequests++;
 		totalProcessTime+=diff;
 		
-		if(global_verbose)
+		if(verbose)
 		{
 			logger.info("Worker ended, elapsed: "+diff+" milliseconds");
 		}
@@ -307,8 +314,8 @@ public class Worker {
 	 * @return true if after the toggle, verbose is now turned on.
 	 */
 	String toggleVerbose() {
-		global_verbose = !global_verbose;
-		return "Verbose is now " + global_verbose + "\n";
+		verbose = !verbose;
+		return "Verbose is now " + verbose + "\n";
 	}
 
 	/**
