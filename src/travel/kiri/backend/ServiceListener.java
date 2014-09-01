@@ -57,16 +57,14 @@ public class ServiceListener implements HttpHandler {
 	 */
 	@Override
 	public void handle(HttpExchange he) throws IOException {
-		URI reqUri = he.getRequestURI();
-		String query = reqUri.getRawQuery();
-		Map<String, String> params = new HashMap<String, String>();
-
-		parseQuery(query, params);
-
 		String responseText = "Internal error: not updated";
 		int responseCode = HttpURLConnection.HTTP_INTERNAL_ERROR;
 
 		try {		
+			URI reqUri = he.getRequestURI();
+			String query = reqUri.getRawQuery();
+			Map<String, String> params = parseQuery(query);
+
 			LatLon start = null;
 			try
 			{
@@ -117,16 +115,16 @@ public class ServiceListener implements HttpHandler {
 			responseCode = HttpURLConnection.HTTP_INTERNAL_ERROR;
 		}
 		
-		
-		he.sendResponseHeaders(responseCode, responseText.length());
-		byte[] res = responseText.getBytes();
-		he.getResponseBody().write(res);
+		byte[] responseBytes = responseText.getBytes();
+		he.sendResponseHeaders(responseCode, responseBytes.length);
+		he.getResponseBody().write(responseBytes);
 		he.close();
 
 	}
 
-	private void parseQuery(String query, Map<String, String> params)
-			throws UnsupportedEncodingException {
+	private Map<String, String> parseQuery(String query)
+			throws UnsupportedEncodingException, NullPointerException {
+		Map<String, String> params = new HashMap<String, String>();		
 		if (query != null) {
 			String pairs[] = query.split("[&]");
 			for (String pair : pairs) {
@@ -145,7 +143,10 @@ public class ServiceListener implements HttpHandler {
 
 				params.put(key, value);
 			}
+		} else {
+			throw new NullPointerException("query is null");
 		}
+		return params;
 	}
 
 }

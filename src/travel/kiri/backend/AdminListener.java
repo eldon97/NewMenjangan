@@ -42,7 +42,6 @@ public class AdminListener implements HttpHandler {
 		String responseText = "";
 		
 		try {
-			// TODO test this!
 			if (!he.getRemoteAddress().getAddress().equals(he.getLocalAddress().getAddress())) {
 				responseText = "Forbidden : " + he.getRemoteAddress();
 			} else if (query != null) {
@@ -91,10 +90,9 @@ public class AdminListener implements HttpHandler {
 			responseText = e.toString();
 		}
 			
-		he.sendResponseHeaders(responseStatus, responseText.length());
-		byte[] res = responseText.toString().getBytes();
-
-		he.getResponseBody().write(res);
+		byte[] responseBytes = responseText.toString().getBytes();
+		he.sendResponseHeaders(responseStatus, responseBytes.length);
+		he.getResponseBody().write(responseBytes);
 		he.close();
 	}
 }
