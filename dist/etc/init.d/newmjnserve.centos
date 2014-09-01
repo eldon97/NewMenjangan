@@ -1,15 +1,10 @@
 #!/bin/bash
 #
-#       /etc/rc.d/init.d/<servicename>
+# newmjnserve NewMenjangan Server
 #
-#       <description of the *service*>
-#       <any general comments about this init script>
-#
-# <tags -- see below for tag definitions.  *Every line* from the top
-#  of the file to the end of the tags section must begin with a #
-#  character.  After the tags section, there should be a blank line.
-#  This keeps normal comments in the rest of the file from being
-#  mistaken for tags, should they happen to fit the pattern.>
+# chkconfig: 345 70 30
+# description: NewMenjangan is a public transport routing server
+# processname: newmjnserve
 
 # Source function library.
 . /etc/init.d/functions
@@ -29,7 +24,7 @@ stop() {
         java -jar $NEWMJNSERVE_HOME/NewMenjangan.jar -s
 		[ "$?" = 2 ] && return 2
         rm -f /var/lock/subsys/newmjnserve
-        return <return code of stopping daemon>
+        return 0
 }
 
 case "$1" in
@@ -44,16 +39,16 @@ case "$1" in
 		;;
     restart)
         stop
+        sleep 3
         start
         ;;
     reload)
-		stop
-		start
+        stop
+        sleep 3
+        start
         ;;
-    condrestart)
-        [ -f /var/lock/subsys/<service> ] && restart || :
     *)
-        echo "Usage: <servicename> {start|stop|status|reload|restart"
+        echo "Usage: <servicename> {start|stop|status|reload|restart}"
         exit 1
         ;;
 esac
