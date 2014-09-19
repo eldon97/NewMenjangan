@@ -10,5 +10,6 @@
 6. Update `/etc/init.d/newmjnserve`: edit `export NEWMJNSERVE_HOME=/vagrant/NewMenjangan` into your environment e.g.: `export NEWMJNSERVE_HOME=/home/pascal/newmenjangan/dist`
 7. Enable execute permission for this file (`chmod 755 /etc/init.d/newmjnserve`)
 8. Register init script:
-    * In Debian/Ubuntu: `sudo /sbin/insserv /etc/init.d/mjnserve` or `sudo /usr/lib/insserv/insserv /etc/init.d/mjnserve`
-    * In CentOS: TODO
+    * In Debian/Ubuntu: `sudo /sbin/insserv /etc/init.d/newmjnserve` or `sudo /usr/lib/insserv/insserv /etc/init.d/newmjnserve`
+    * In CentOS: `sudo chkconfig --add newmjnserve
+9. You may want to start the service immediately (`/etc/init.d/newmjnserve start`)

@@ -94,7 +94,6 @@ public class AdminListener extends AbstractHandler {
 			responseStatus = HttpStatus.INTERNAL_SERVER_ERROR_500;
 			responseText = e.toString();
 		}
-		
 		response.setStatus(responseStatus);
 		baseRequest.setHandled(true);
 		response.getWriter().println(responseText);

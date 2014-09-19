@@ -51,36 +51,13 @@ public class ServiceListener extends AbstractHandler {
 		this.worker = w;
 		//this.worker.global_verbose=true;
 	}
-
-	private void parseQuery(String query, Map<String, String> params)
-			throws UnsupportedEncodingException {
-		if (query != null) {
-			String pairs[] = query.split("[&]");
-			for (String pair : pairs) {
-				String param[] = pair.split("[=]");
-
-				String key = null;
-				String value = null;
-				if (param.length > 0) {
-					key = URLDecoder.decode(param[0],
-							System.getProperty("file.encoding"));
-				}
-				if (param.length > 1) {
-					value = URLDecoder.decode(param[1],
-							System.getProperty("file.encoding"));
-				}
-
-				params.put(key, value);
-			}
-		}
-	}
-
+	
 	@Override
 	public void handle(String target, Request baseRequest,
 			HttpServletRequest request, HttpServletResponse response) throws IOException {
 		String query = request.getQueryString();
 		Map<String, String> params = new HashMap<String, String>();
-		parseQuery(query, params);
+		params = parseQuery(query);
 
 		String responseText = "Internal error: not updated";
 		int responseCode = HttpStatus.INTERNAL_SERVER_ERROR_500;
@@ -139,6 +116,33 @@ public class ServiceListener extends AbstractHandler {
 		response.setStatus(responseCode);
 		baseRequest.setHandled(true);
 		response.getWriter().println(responseText);
+	}
+
+	private Map<String, String> parseQuery(String query)
+			throws UnsupportedEncodingException, NullPointerException {
+		Map<String, String> params = new HashMap<String, String>();		
+		if (query != null) {
+			String pairs[] = query.split("[&]");
+			for (String pair : pairs) {
+				String param[] = pair.split("[=]");
+
+				String key = null;
+				String value = null;
+				if (param.length > 0) {
+					key = URLDecoder.decode(param[0],
+							System.getProperty("file.encoding"));
+				}
+				if (param.length > 1) {
+					value = URLDecoder.decode(param[1],
+							System.getProperty("file.encoding"));
+				}
+
+				params.put(key, value);
+			}
+		} else {
+			throw new NullPointerException("query is null");
+		}
+		return params;
 	}
 
 }
