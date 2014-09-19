@@ -3,10 +3,16 @@ package travel.kiri.backend;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.InetSocketAddress;
 import java.net.URL;
 
-import com.sun.net.httpserver.HttpServer;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.AbstractHandler;
+
 
 public class Main {
 
@@ -35,15 +41,26 @@ public class Main {
 			System.exit(1);
 		}
 		try {
-			HttpServer server = HttpServer.create(new InetSocketAddress(portNumber), 0);
-			AdminListener admin = new AdminListener();
-			server.createContext("/admin", admin);
-			Worker worker = new Worker();
-			server.createContext("/", new ServiceListener(worker));
+			final Worker worker = new Worker();
+			final AdminListener admin = new AdminListener();
+			final ServiceListener service = new ServiceListener(worker);
 			admin.setWorker(worker);
-			server.setExecutor(null);
+			Server server = new Server(portNumber);
+			server.setHandler(new AbstractHandler() {
+
+				@Override
+				public void handle(String target, Request baseRequest,
+						HttpServletRequest request, HttpServletResponse response)
+						throws IOException, ServletException {
+					if (target.equals("/")) {
+						service.handle(target, baseRequest, request, response);
+					} else if (target.equals("/admin")) {
+						admin.handle(target, baseRequest, request, response);						
+					}
+				}
+			});
 			server.start();
-		} catch (IOException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}

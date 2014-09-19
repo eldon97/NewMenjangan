@@ -2,16 +2,18 @@ package travel.kiri.backend;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.URI;
 import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Map;
 
-import travel.kiri.backend.algorithm.LatLon;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
+import org.eclipse.jetty.http.HttpStatus;
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.handler.AbstractHandler;
+
+import travel.kiri.backend.algorithm.LatLon;
 
 /**
  * <p>
@@ -35,7 +37,7 @@ import com.sun.net.httpserver.HttpHandler;
  * @author PascalAlfadian
  * 
  */
-public class ServiceListener implements HttpHandler {
+public class ServiceListener extends AbstractHandler {
 
 	public static final String PARAMETER_START = "start";
 	public static final String PARAMETER_FINISH = "finish";
@@ -50,21 +52,38 @@ public class ServiceListener implements HttpHandler {
 		//this.worker.global_verbose=true;
 	}
 
-	/**
-	 * Menghandle request HTTP yang data. Pada servicelistener.cc, ini sama
-	 * dengan fungsi answer_to_connection. Nantinya, akan digunakan juga untuk
-	 * menghandle request dari admin
-	 */
-	@Override
-	public void handle(HttpExchange he) throws IOException {
-		URI reqUri = he.getRequestURI();
-		String query = reqUri.getRawQuery();
-		Map<String, String> params = new HashMap<String, String>();
+	private void parseQuery(String query, Map<String, String> params)
+			throws UnsupportedEncodingException {
+		if (query != null) {
+			String pairs[] = query.split("[&]");
+			for (String pair : pairs) {
+				String param[] = pair.split("[=]");
 
+				String key = null;
+				String value = null;
+				if (param.length > 0) {
+					key = URLDecoder.decode(param[0],
+							System.getProperty("file.encoding"));
+				}
+				if (param.length > 1) {
+					value = URLDecoder.decode(param[1],
+							System.getProperty("file.encoding"));
+				}
+
+				params.put(key, value);
+			}
+		}
+	}
+
+	@Override
+	public void handle(String target, Request baseRequest,
+			HttpServletRequest request, HttpServletResponse response) throws IOException {
+		String query = request.getQueryString();
+		Map<String, String> params = new HashMap<String, String>();
 		parseQuery(query, params);
 
 		String responseText = "Internal error: not updated";
-		int responseCode = HttpURLConnection.HTTP_INTERNAL_ERROR;
+		int responseCode = HttpStatus.INTERNAL_SERVER_ERROR_500;
 
 		try {		
 			LatLon start = null;
@@ -97,55 +116,29 @@ public class ServiceListener implements HttpHandler {
 						maximumWalking == null ? null : new Double(maximumWalking),
 						walkingMultiplier == null ? null : new Double(walkingMultiplier),
 						penaltyTransfer == null ? null : new Double(penaltyTransfer));
-				responseCode = HttpURLConnection.HTTP_ACCEPTED;
+				responseCode = HttpStatus.OK_200;
 			}
 			else if(start!=null && finish==null)
 			{
 				//findnearby
 				responseText = worker.findNearbyTransports(start, 
 						maximumWalking == null ? null : new Double(maximumWalking));	
-				responseCode = HttpURLConnection.HTTP_ACCEPTED;			
+				responseCode = HttpStatus.OK_200;			
 			}
 			else
 			{
 				responseText = "Please provide start and finish location";
-				responseCode = HttpURLConnection.HTTP_BAD_REQUEST;
+				responseCode = HttpStatus.BAD_REQUEST_400;
 			}
 			
 		} catch (Exception e) {
 			responseText = e.toString();
-			responseCode = HttpURLConnection.HTTP_INTERNAL_ERROR;
+			responseCode = HttpStatus.INTERNAL_SERVER_ERROR_500;
 		}
 		
-		
-		he.sendResponseHeaders(responseCode, responseText.length());
-		byte[] res = responseText.getBytes();
-		he.getResponseBody().write(res);
-		he.close();
-
-	}
-
-	private void parseQuery(String query, Map<String, String> params)
-			throws UnsupportedEncodingException {
-		if (query != null) {
-			String pairs[] = query.split("[&]");
-			for (String pair : pairs) {
-				String param[] = pair.split("[=]");
-
-				String key = null;
-				String value = null;
-				if (param.length > 0) {
-					key = URLDecoder.decode(param[0],
-							System.getProperty("file.encoding"));
-				}
-				if (param.length > 1) {
-					value = URLDecoder.decode(param[1],
-							System.getProperty("file.encoding"));
-				}
-
-				params.put(key, value);
-			}
-		}
+		response.setStatus(responseCode);
+		baseRequest.setHandled(true);
+		response.getWriter().println(responseText);
 	}
 
 }

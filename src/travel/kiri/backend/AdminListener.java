@@ -1,10 +1,14 @@
 package travel.kiri.backend;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
+import java.net.InetAddress;
 
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.eclipse.jetty.http.HttpStatus;
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.handler.AbstractHandler;
 
 /**
  * <p>
@@ -28,7 +32,7 @@ import com.sun.net.httpserver.HttpHandler;
  * @author PascalAlfadian
  * 
  */
-public class AdminListener implements HttpHandler {	
+public class AdminListener extends AbstractHandler {	
 	Worker worker = null;
 	
 	public void setWorker(Worker worker) {
@@ -36,15 +40,15 @@ public class AdminListener implements HttpHandler {
 	}
 
 	@Override
-	public void handle(HttpExchange he) throws IOException {
-		String query = he.getRequestURI().getRawQuery();
-		int responseStatus = HttpURLConnection.HTTP_FORBIDDEN;
+	public void handle(String target, Request baseRequest,
+			HttpServletRequest request, HttpServletResponse response) throws IOException {
+		String query = request.getQueryString();
+		int responseStatus = HttpStatus.FORBIDDEN_403;
 		String responseText = "";
 		
 		try {
-			// TODO test this!
-			if (!he.getRemoteAddress().getAddress().equals(he.getLocalAddress().getAddress())) {
-				responseText = "Forbidden : " + he.getRemoteAddress();
+			if (!InetAddress.getByName(baseRequest.getRemoteAddr()).isLoopbackAddress()) {
+				responseText = "Forbidden : " + baseRequest.getRemoteAddr();
 			} else if (query != null) {
 				if (query.equals("forceshutdown")) {
 					new Thread() {
@@ -58,43 +62,41 @@ public class AdminListener implements HttpHandler {
 							System.exit(0);						
 						}
 					}.start();
-					responseStatus = HttpURLConnection.HTTP_OK;
+					responseStatus = HttpStatus.OK_200;
 					responseText = "Server will shutdown in 1 second";
 				} else if (query.equals("tracksinfo")) {
 					if (worker != null) {
-						responseStatus = HttpURLConnection.HTTP_OK;
+						responseStatus = HttpStatus.OK_200;
 						responseText = worker.printTracksInfo();
 					} else {
-						responseStatus = HttpURLConnection.HTTP_UNAVAILABLE;
+						responseStatus = HttpStatus.SERVICE_UNAVAILABLE_503;
 						responseText = "Worker is not ready.";
 					}
 				} else if (query.equals("toggleverbose")) {
 					if (worker != null) {
-						responseStatus = HttpURLConnection.HTTP_OK;
+						responseStatus = HttpStatus.OK_200;
 						responseText = worker.toggleVerbose();
 					} else {
-						responseStatus = HttpURLConnection.HTTP_UNAVAILABLE;
+						responseStatus = HttpStatus.SERVICE_UNAVAILABLE_503;
 						responseText = "Worker is not ready.";
 					}
 				} else if (query.equals("ping")) {
-					responseStatus = HttpURLConnection.HTTP_OK;
+					responseStatus = HttpStatus.OK_200;
 					responseText = "pong\n";					
 				} else {
 					responseText = "Invalid command: " + query;
 				}
 			} else {
-				responseStatus = HttpURLConnection.HTTP_BAD_REQUEST;
+				responseStatus = HttpStatus.BAD_REQUEST_400;
 				responseText = "Command must be provided";
 			}
 		} catch (Exception e) {
-			responseStatus = HttpURLConnection.HTTP_INTERNAL_ERROR;
+			responseStatus = HttpStatus.INTERNAL_SERVER_ERROR_500;
 			responseText = e.toString();
 		}
-			
-		he.sendResponseHeaders(responseStatus, responseText.length());
-		byte[] res = responseText.toString().getBytes();
-
-		he.getResponseBody().write(res);
-		he.close();
+		
+		response.setStatus(responseStatus);
+		baseRequest.setHandled(true);
+		response.getWriter().println(responseText);
 	}
 }
