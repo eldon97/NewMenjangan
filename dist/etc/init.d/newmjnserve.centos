@@ -9,7 +9,7 @@
 # Source function library.
 . /etc/init.d/functions
 
-export NEWMJNSERVE_HOME=/vagrant/NewMenjangan
+export NEWMJNSERVE_HOME=/home/pascal/newmenjangan/dist
 
 start() {
         echo -n "Starting newmjnserve: "
