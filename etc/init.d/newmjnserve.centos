@@ -1,0 +1,55 @@
+#!/bin/bash
+#
+# newmjnserve NewMenjangan Server
+#
+# chkconfig: 345 70 30
+# description: NewMenjangan is a public transport routing server
+# processname: newmjnserve
+
+# Source function library.
+. /etc/init.d/functions
+
+export NEWMJNSERVE_HOME=/home/pascal/newmenjangan/dist
+
+start() {
+        echo -n "Starting newmjnserve: "
+		java -jar $NEWMJNSERVE_HOME/NewMenjangan.jar -c && return 1
+        nohup java -jar $NEWMJNSERVE_HOME/NewMenjangan.jar &
+        touch /var/lock/subsys/newmjnserve
+        return 0
+}
+
+stop() {
+        echo -n "Shutting down newmjnserve: "
+        java -jar $NEWMJNSERVE_HOME/NewMenjangan.jar -s
+		[ "$?" = 2 ] && return 2
+        rm -f /var/lock/subsys/newmjnserve
+        return 0
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    status)
+		java -jar $NEWMJNSERVE_HOME/NewMenjangan.jar -c
+		;;
+    restart)
+        stop
+        sleep 3
+        start
+        ;;
+    reload)
+        stop
+        sleep 3
+        start
+        ;;
+    *)
+        echo "Usage: <servicename> {start|stop|status|reload|restart}"
+        exit 1
+        ;;
+esac
+exit $?
