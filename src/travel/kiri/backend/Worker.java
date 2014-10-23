@@ -29,6 +29,8 @@ import edu.wlu.cs.levy.CG.KeySizeException;
  * 
  */
 public class Worker {
+	
+	public static final int EXTRA_NODES = 1;
 
 	private final static Logger logger = Logger.getLogger(Worker.class.getName());
 	
@@ -157,8 +159,8 @@ public class Worker {
 		// create virtual graph
 
 		int vNodesSize = nodes.size() + 2;
-		int startNode = nodes.size();
-		int endNode = nodes.size() + 1;
+		int startNodeIndex = nodes.size();
+		int endNodeIndex = nodes.size() + 1;
 
 		Graph vNodes = new Graph(vNodesSize);
 		GraphNode realNode;
@@ -178,7 +180,7 @@ public class Worker {
 			double distance = start.distanceTo(nodes.get(i).getLocation());
 			if (distance <= customMaximumWalkingDistance
 					&& nodes.get(i).isTransferNode()) {
-				vNodes.get(startNode).push_back(i, distance);
+				vNodes.get(startNodeIndex).push_back(i, distance);
 			}
 		}
 
@@ -187,46 +189,58 @@ public class Worker {
 			double distance = finish.distanceTo(nodes.get(i).getLocation());
 			if (distance <= customMaximumWalkingDistance
 					&& nodes.get(i).isTransferNode()) {
-				vNodes.get(i).push_back(endNode, distance);
+				vNodes.get(i).push_back(endNodeIndex, distance);
 			}
 		}
 
 		{
 			double distance = start.distanceTo(finish);
 			if (distance <= customMaximumWalkingDistance) {
-				vNodes.get(startNode).push_back(endNode,
+				vNodes.get(startNodeIndex).push_back(endNodeIndex,
 						customMultiplierWalking * distance);
-				vNodes.get(endNode).push_back(startNode,
+				vNodes.get(endNodeIndex).push_back(startNodeIndex,
 						customMultiplierWalking * distance);
 			}
 		}
 
-		Dijkstra dijkstra = new Dijkstra(vNodes, startNode, endNode,
+		Dijkstra dijkstra = new Dijkstra(vNodes, startNodeIndex, endNodeIndex,
 				customMultiplierWalking, customPenaltyTransfer);
 		dijkstra.runAlgorithm();
 
 		// traversing
-		int currentNode = endNode;
+		int currentNodeIndex = endNodeIndex;
 
-		int lastNode, angkotLength = 0;
+		int lastNodeIndex, angkotLength = 0;
 		double distance = 0;
 		StringBuilder line = new StringBuilder();
 		List<String> steps = new ArrayList<String>();
 
-		while (dijkstra.getParent(currentNode) != Dijkstra.DIJKSTRA_NULLNODE) {
-			lastNode = currentNode;
-			currentNode = dijkstra.getParent(currentNode);
+		while (dijkstra.getParent(currentNodeIndex) != Dijkstra.DIJKSTRA_NULLNODE) {
+			lastNodeIndex = currentNodeIndex;
+			currentNodeIndex = dijkstra.getParent(currentNodeIndex);
 
-			if (lastNode == endNode
-					|| currentNode == startNode
-					|| !nodes.get(currentNode).getTrack()
-							.equals(nodes.get(lastNode).getTrack())) {
+			if (lastNodeIndex == endNodeIndex
+					|| currentNodeIndex == startNodeIndex
+					|| !nodes.get(currentNodeIndex).getTrack()
+							.equals(nodes.get(lastNodeIndex).getTrack())) {
 				if (angkotLength > 0) {
-					Track t = nodes.get(lastNode).getTrack();
-					line.insert(0, "/");
-					line.insert(0, t.getTrackId());
-					line.insert(0, "/");
-					line.insert(0, t.getTrackTypeId());
+					GraphNode lastNode = nodes.get(lastNodeIndex);
+					Track track = lastNode.getTrack();
+					int departNodeIndex = -1;
+					for (int i = 0; i < track.getSize(); i++) {
+						if (track.getNode(i) == lastNode) {
+							departNodeIndex = i;
+							break;
+						}
+					}
+					if (departNodeIndex != -1) {
+						for (int i = Math.max(0, departNodeIndex - EXTRA_NODES - 1); i < departNodeIndex; i++) {
+							LatLon location = track.getNode(i).getLocation();
+							line.insert(0, String.format(Locale.US, "%.5f,%.5f ", location.lat, location.lon));
+						}
+					}
+					
+					line.insert(0, String.format("%s/%s/", track.getTrackTypeId(), track.getTrackId()));
 
 					line.append(String.format(Locale.US, "%.3f", distance));
 					line.append("/");
@@ -236,25 +250,25 @@ public class Worker {
 					steps.add(line.toString());
 				}
 
-				distance = (dijkstra.getDistance(lastNode) - dijkstra
-						.getDistance(currentNode)) / customMultiplierWalking;
-				if (!(lastNode == endNode || currentNode == startNode)) {
+				distance = (dijkstra.getDistance(lastNodeIndex) - dijkstra
+						.getDistance(currentNodeIndex)) / customMultiplierWalking;
+				if (!(lastNodeIndex == endNodeIndex || currentNodeIndex == startNodeIndex)) {
 					distance -= customPenaltyTransfer;
 				}
 
 				line = new StringBuilder("walk/walk/");
-				if (currentNode == startNode) {
+				if (currentNodeIndex == startNodeIndex) {
 					line.append("start ");
 				} else {
-					LatLon location = nodes.get(currentNode).getLocation();
+					LatLon location = nodes.get(currentNodeIndex).getLocation();
 					line.append(String.format(Locale.US, "%.5f,%.5f ",
 							location.lat, location.lon));
 				}
 
-				if (lastNode == endNode) {
+				if (lastNodeIndex == endNodeIndex) {
 					line.append("finish");
 				} else {
-					LatLon location = nodes.get(lastNode).getLocation();
+					LatLon location = nodes.get(lastNodeIndex).getLocation();
 					line.append(String.format(Locale.US, "%.5f,%.5f",
 							location.lat, location.lon));
 				}
@@ -263,8 +277,8 @@ public class Worker {
 
 				steps.add(line.toString());
 
-				if (currentNode != startNode) {
-					LatLon location = nodes.get(currentNode).getLocation();
+				if (currentNodeIndex != startNodeIndex) {
+					LatLon location = nodes.get(currentNodeIndex).getLocation();
 					line = new StringBuilder(String.format(Locale.US,
 							"%.5f,%.5f/", location.lat, location.lon));
 					distance = 0;
@@ -272,11 +286,11 @@ public class Worker {
 				}
 			} else {
 				// angkot!!
-				distance += (dijkstra.getDistance(lastNode) - dijkstra
-						.getDistance(currentNode))
-						/ nodes.get(currentNode).getTrack().getPenalty();
+				distance += (dijkstra.getDistance(lastNodeIndex) - dijkstra
+						.getDistance(currentNodeIndex))
+						/ nodes.get(currentNodeIndex).getTrack().getPenalty();
 
-				LatLon location = nodes.get(currentNode).getLocation();
+				LatLon location = nodes.get(currentNodeIndex).getLocation();
 				line.insert(0, String.format(Locale.US, "%.5f,%.5f ",
 						location.lat, location.lon));
 				angkotLength++;
