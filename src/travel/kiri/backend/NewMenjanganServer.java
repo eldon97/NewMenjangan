@@ -2,6 +2,7 @@ package travel.kiri.backend;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -19,7 +20,12 @@ public class NewMenjanganServer {
 	private final ServiceListener service;
 	private final Server httpServer;
 	
+	private final int portNumber;
+	private final String homeDirectory;
+	
 	public NewMenjanganServer(int portNumber, String homeDirectory) throws FileNotFoundException, IOException {
+		this.portNumber = portNumber;
+		this.homeDirectory = homeDirectory;
 		worker = new Worker(homeDirectory);
 		admin = new AdminListener();
 		service = new ServiceListener(worker);
@@ -40,7 +46,17 @@ public class NewMenjanganServer {
 		});
 	}
 	
-	public void start(Integer portNumber, String homeDirectory) throws Exception {
+	public NewMenjanganServer clone() {
+		try {
+			return new NewMenjanganServer(this.portNumber, this.homeDirectory);
+		} catch (Exception e) {
+			Logger.getGlobal().severe(e.getMessage());
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	public void start() throws Exception {
 		httpServer.start();		
 	}
 	public void stop() throws Exception {
