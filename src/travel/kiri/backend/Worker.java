@@ -45,16 +45,16 @@ public class Worker {
 	List<Track> tracks;
 	Graph nodes;
 
-	public Worker() throws FileNotFoundException, IOException {
-		FileHandler txtFile = new FileHandler(Main.homeDirectory + "/log/newmjnserve.log");
+	public Worker(String homeDirectory) throws FileNotFoundException, IOException {
+		FileHandler txtFile = new FileHandler(homeDirectory + "/log/newmjnserve.log");
 		txtFile.setFormatter(new SimpleFormatter());
 		logger.addHandler(txtFile);
 		long start = System.currentTimeMillis();
 		tracks = new ArrayList<Track>();
 		nodes = new Graph();
-		readConfiguration(Main.homeDirectory + "/etc/mjnserve.conf");
+		readConfiguration(homeDirectory + "/etc/mjnserve.conf");
 		logger.info("Configuration done");
-		readGraph(Main.homeDirectory + "/etc/tracks.conf");
+		readGraph(homeDirectory + "/etc/tracks.conf");
 		logger.info("Tracks done");
 		linkAngkots();
 		logger.info("Angkot links done");

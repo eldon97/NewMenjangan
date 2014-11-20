@@ -1,28 +1,30 @@
 package travel.kiri.backend;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.handler.AbstractHandler;
-
 
 public class Main {
 
-	public static final int DEFAULT_PORT_NUMBER = 8000;
+	static NewMenjanganServer server;
 	
-	public static String homeDirectory = null;
-
-	public static void main(String[] args) throws FileNotFoundException,
-			IOException {
-		int portNumber = DEFAULT_PORT_NUMBER;
+	public static void main(String[] args) throws Exception {
+		// Test catching TERM signal TODO remove after confirmed
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+			@Override
+			public void run() {
+				System.out.println("Halted by signal!");
+				try {
+					server.stop();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		
+		
+		int portNumber = NewMenjanganServer.DEFAULT_PORT_NUMBER;
 		for (String arg: args) {
 			try {
 				portNumber = Integer.decode(arg);
@@ -35,34 +37,13 @@ public class Main {
 				}
 			}
 		}
-		homeDirectory = System.getenv("NEWMJNSERVE_HOME");
+		String homeDirectory = System.getenv("NEWMJNSERVE_HOME");
 		if (homeDirectory == null) {
 			System.err.println("You need to set NEWMJNSERVE_HOME first!");
 			System.exit(1);
 		}
-		try {
-			final Worker worker = new Worker();
-			final AdminListener admin = new AdminListener();
-			final ServiceListener service = new ServiceListener(worker);
-			admin.setWorker(worker);
-			Server server = new Server(portNumber);
-			server.setHandler(new AbstractHandler() {
-
-				@Override
-				public void handle(String target, Request baseRequest,
-						HttpServletRequest request, HttpServletResponse response)
-						throws IOException, ServletException {
-					if (target.equals("/")) {
-						service.handle(target, baseRequest, request, response);
-					} else if (target.equals("/admin")) {
-						admin.handle(target, baseRequest, request, response);						
-					}
-				}
-			});
-			server.start();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		server = new NewMenjanganServer(portNumber, homeDirectory);
+		server.start(portNumber, homeDirectory);
 	}
 
 	public static void checkStatus(int portNumber) {
