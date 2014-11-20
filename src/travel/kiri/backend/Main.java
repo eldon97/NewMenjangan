@@ -10,18 +10,6 @@ public class Main {
 	static NewMenjanganServer server;
 	
 	public static void main(String[] args) throws Exception {
-		// Test catching TERM signal TODO remove after confirmed
-		Runtime.getRuntime().addShutdownHook(new Thread() {
-			@Override
-			public void run() {
-				System.out.println("Halted by signal!");
-				try {
-					server.stop();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
 		
 		
 		int portNumber = NewMenjanganServer.DEFAULT_PORT_NUMBER;
@@ -43,6 +31,20 @@ public class Main {
 			System.exit(1);
 		}
 		server = new NewMenjanganServer(portNumber, homeDirectory);
+		
+		// Test catching TERM signal TODO remove after confirmed
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+			@Override
+			public void run() {
+				System.out.println("Halted by signal!");
+				try {
+					server.stop();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		
 		server.start(portNumber, homeDirectory);
 	}
 
