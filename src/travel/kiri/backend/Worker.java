@@ -9,9 +9,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.Scanner;
-import java.util.logging.FileHandler;
-import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
 
 import travel.kiri.backend.algorithm.Dijkstra;
 import travel.kiri.backend.algorithm.Graph;
@@ -30,8 +27,6 @@ import edu.wlu.cs.levy.CG.KeySizeException;
  */
 public class Worker {
 
-	private final static Logger logger = Logger.getLogger(Worker.class.getName());
-	
 	public Double globalMaximumWalkingDistance;
 	public Double global_maximum_transfer_distance;
 	public Double globalMultiplierWalking;
@@ -46,21 +41,18 @@ public class Worker {
 	Graph nodes;
 
 	public Worker(String homeDirectory) throws FileNotFoundException, IOException {
-		FileHandler txtFile = new FileHandler(homeDirectory + "/log/newmjnserve.log");
-		txtFile.setFormatter(new SimpleFormatter());
-		logger.addHandler(txtFile);
 		long start = System.currentTimeMillis();
 		tracks = new ArrayList<Track>();
 		nodes = new Graph();
 		readConfiguration(homeDirectory + "/etc/mjnserve.conf");
-		logger.info("Configuration done");
+		Main.globalLogger.info("Configuration done");
 		readGraph(homeDirectory + "/etc/tracks.conf");
-		logger.info("Tracks done");
+		Main.globalLogger.info("Tracks done");
 		linkAngkots();
-		logger.info("Angkot links done");
+		Main.globalLogger.info("Angkot links done");
 		long end = System.currentTimeMillis();
 		double time = (end-start)/1000.0;
-		logger.info("Init time = "+time+"s");
+		Main.globalLogger.info("Init time = "+time+"s");
 		verbose = true;
 	}
 
@@ -135,7 +127,7 @@ public class Worker {
 
 		if(verbose)
 		{
-			logger.info("Worker started for " + start + " to " + finish);
+			Main.globalLogger.info("Worker started for " + start + " to " + finish);
 		}
 
 		
@@ -301,7 +293,7 @@ public class Worker {
 		
 		if(verbose)
 		{
-			logger.info("Worker ended, elapsed: "+diff+" milliseconds");
+			Main.globalLogger.info("Worker ended, elapsed: "+diff+" milliseconds");
 		}
 
 		return retval.toString();

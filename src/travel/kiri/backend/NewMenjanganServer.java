@@ -2,7 +2,6 @@ package travel.kiri.backend;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -50,7 +49,7 @@ public class NewMenjanganServer {
 		try {
 			return new NewMenjanganServer(this.portNumber, this.homeDirectory);
 		} catch (Exception e) {
-			Logger.getGlobal().severe(e.getMessage());
+			Main.globalLogger.severe(e.getMessage());
 			e.printStackTrace();
 			return null;
 		}

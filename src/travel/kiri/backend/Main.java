@@ -4,10 +4,13 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.sql.Date;
+import java.text.DateFormat;
 import java.util.Calendar;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.logging.FileHandler;
 import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 
 public class Main {
@@ -16,9 +19,10 @@ public class Main {
 	static Timer timer;
 	static int portNumber;
 	static String homeDirectory;
+
+	static final Logger globalLogger = Logger.getGlobal();
 	
 	public static void main(String[] args) throws Exception {
-		
 		portNumber = NewMenjanganServer.DEFAULT_PORT_NUMBER;
 		for (String arg: args) {
 			try {
@@ -37,6 +41,9 @@ public class Main {
 			System.err.println("You need to set NEWMJNSERVE_HOME first!");
 			System.exit(1);
 		}
+		FileHandler logFileHandler = new FileHandler(homeDirectory + "/log/newmjnserve.log");
+		logFileHandler.setFormatter(new SimpleFormatter());
+		globalLogger.addHandler(logFileHandler);
 		server = new NewMenjanganServer(portNumber, homeDirectory);
 
 		// Setup timer
@@ -46,7 +53,8 @@ public class Main {
 		nextMidnight.set(Calendar.MINUTE, 15);
 		Timer timer = new Timer(false);
 		timer.schedule(new DataRefresher(), new Date(nextMidnight.getTimeInMillis()), 24 * 60 * 60 * 1000);
-		Logger.getGlobal().info("Data refresh timer scheduled, first time at UNIX Time " + nextMidnight.getTimeInMillis());
+		DateFormat dateFormat = DateFormat.getInstance();
+		globalLogger.info("Data refresh timer scheduled, first time at " + dateFormat.format(new Date(nextMidnight.getTimeInMillis())));
 		
 		// Test catching TERM signal TODO remove after confirmed
 		Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -100,18 +108,18 @@ public class Main {
 
 		@Override
 		public void run() {
-			Logger.getGlobal().info("Data refresh triggered, server reload executed!");
+			globalLogger.info("Data refresh triggered, server reload executed!");
 			if (server != null) {
 				try {
 					server.stop();
 					server = server.clone();
 					server.start();
 				} catch (Exception e) {
-					Logger.getGlobal().severe(e.getMessage());
+					globalLogger.severe(e.getMessage());
 					e.printStackTrace();
 				}
 			} else {
-				Logger.getGlobal().severe("Can't restart server, is server is detected inactive!");
+				globalLogger.severe("Can't restart server, is server is detected inactive!");
 			}
 		}
 		
