@@ -42,7 +42,7 @@ public class Main {
 		// Setup timer
 		Calendar nextMidnight = Calendar.getInstance();
 		nextMidnight.setTimeInMillis(nextMidnight.getTimeInMillis() + 24 * 60 * 60 * 1000);
-		nextMidnight.set(Calendar.HOUR, 0);
+		nextMidnight.set(Calendar.HOUR_OF_DAY, 0);
 		nextMidnight.set(Calendar.MINUTE, 15);
 		Timer timer = new Timer(false);
 		timer.schedule(new DataRefresher(), new Date(nextMidnight.getTimeInMillis()), 24 * 60 * 60 * 1000);
