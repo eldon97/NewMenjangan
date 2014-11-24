@@ -1,6 +1,8 @@
 package travel.kiri.backend;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.sql.Date;
@@ -12,15 +14,22 @@ import java.util.logging.FileHandler;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
+import travel.kiri.backend.puller.DataPuller;
+
 
 public class Main {
 
+	public static String TRACKS_CONF = "etc/tracks.conf";
+	public static String MYSQL_PROPERTIES = "etc/mysql.properties";
+	public static String MJNSERVE_PROPERTIES = "etc/mjnserve.properties";
+	
 	static NewMenjanganServer server;
+	static DataPuller puller;
 	static Timer timer;
 	static int portNumber;
 	static String homeDirectory;
 
-	static final Logger globalLogger = Logger.getGlobal();
+	public static final Logger globalLogger = Logger.getGlobal();
 	
 	public static void main(String[] args) throws Exception {
 		portNumber = NewMenjanganServer.DEFAULT_PORT_NUMBER;
@@ -44,6 +53,8 @@ public class Main {
 		FileHandler logFileHandler = new FileHandler(homeDirectory + "/log/newmjnserve.log");
 		logFileHandler.setFormatter(new SimpleFormatter());
 		globalLogger.addHandler(logFileHandler);
+		
+		pullData();
 		server = new NewMenjanganServer(portNumber, homeDirectory);
 
 		// Setup timer
@@ -104,6 +115,23 @@ public class Main {
 		}
 	}	
 	
+	private static boolean pullData() {
+		if (puller == null) {
+			puller = new DataPuller();
+		}
+		try {
+			PrintStream outStream = new PrintStream(TRACKS_CONF + ".tmp");
+			puller.pull(new File(MYSQL_PROPERTIES), outStream);
+			
+			new File(TRACKS_CONF).delete();
+			new File(TRACKS_CONF + ".tmp").renameTo(new File(TRACKS_CONF));
+			return true;
+		} catch (Exception e) {
+			globalLogger.severe("Failed to refresh data: " + e.toString());
+			return false;
+		}
+	}
+	
 	static class DataRefresher extends TimerTask {
 
 		@Override
@@ -111,15 +139,19 @@ public class Main {
 			globalLogger.info("Data refresh triggered, server reload executed!");
 			if (server != null) {
 				try {
-					server.stop();
-					server = server.clone();
-					server.start();
+					if (pullData()) {
+						server.stop();
+						server = server.clone();
+						server.start();
+					} else {
+						globalLogger.info("No change in data, server not restarted.");
+					}
 				} catch (Exception e) {
 					globalLogger.severe(e.getMessage());
 					e.printStackTrace();
 				}
 			} else {
-				globalLogger.severe("Can't restart server, is server is detected inactive!");
+				globalLogger.severe("Can't restart server, as server is detected inactive!");
 			}
 		}
 		

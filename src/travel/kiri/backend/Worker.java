@@ -44,9 +44,9 @@ public class Worker {
 		long start = System.currentTimeMillis();
 		tracks = new ArrayList<Track>();
 		nodes = new Graph();
-		readConfiguration(homeDirectory + "/etc/mjnserve.conf");
+		readConfiguration(homeDirectory + "/" + Main.MJNSERVE_PROPERTIES);
 		Main.globalLogger.info("Configuration done");
-		readGraph(homeDirectory + "/etc/tracks.conf");
+		readGraph(homeDirectory + "/" + Main.TRACKS_CONF);
 		Main.globalLogger.info("Tracks done");
 		linkAngkots();
 		Main.globalLogger.info("Angkot links done");
