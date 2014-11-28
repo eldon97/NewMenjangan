@@ -229,10 +229,10 @@ public class DataPuller {
 						}
 						isPathLoop = true;
 					} else {
-						throw new DataPullerException(String.format("Does not support linking tracks that far away: %s.%s/s ", trackTypeId, trackId, angkotId));
+						throw new DataPullerException(String.format("Does not support linking tracks that far away: %s.%s/%s ", trackTypeId, trackId, angkotId));
 					}
 				} else {
-					Main.globalLogger.warning(String.format("Does not support tracks with %d routes: %s.%s/s ", coordinates.size(), trackTypeId, trackId, angkotId));
+					Main.globalLogger.warning(String.format("Does not support tracks with %d routes: %s.%s/%s ", coordinates.size(), trackTypeId, trackId, angkotId));
 					return null;
 				}
 				return formatTrack(trackTypeId, trackId, finalCoordinates.toArray(new LngLatAlt[0]), isPathLoop, DEFAULT_PENALTY, null);
