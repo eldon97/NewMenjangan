@@ -22,6 +22,7 @@ public class Main {
 	public static String TRACKS_CONF = "etc/tracks.conf";
 	public static String MYSQL_PROPERTIES = "etc/mysql.properties";
 	public static String MJNSERVE_PROPERTIES = "etc/mjnserve.properties";
+	public static String NEWMJNSERVE_LOG = "log/newmjnserve.log";
 	
 	static NewMenjanganServer server;
 	static DataPuller puller;
@@ -50,7 +51,7 @@ public class Main {
 			System.err.println("You need to set NEWMJNSERVE_HOME first!");
 			System.exit(1);
 		}
-		FileHandler logFileHandler = new FileHandler(homeDirectory + "/log/newmjnserve.log");
+		FileHandler logFileHandler = new FileHandler(homeDirectory + "/" + NEWMJNSERVE_LOG);
 		logFileHandler.setFormatter(new SimpleFormatter());
 		globalLogger.addHandler(logFileHandler);
 		
@@ -120,11 +121,11 @@ public class Main {
 			puller = new DataPuller();
 		}
 		try {
-			PrintStream outStream = new PrintStream(TRACKS_CONF + ".tmp");
+			PrintStream outStream = new PrintStream(homeDirectory + "/" + TRACKS_CONF + ".tmp");
 			puller.pull(new File(MYSQL_PROPERTIES), outStream);
 			
-			new File(TRACKS_CONF).delete();
-			new File(TRACKS_CONF + ".tmp").renameTo(new File(TRACKS_CONF));
+			new File(homeDirectory + "/" + TRACKS_CONF).delete();
+			new File(homeDirectory + "/" + TRACKS_CONF + ".tmp").renameTo(new File(homeDirectory + "/" + TRACKS_CONF));
 			return true;
 		} catch (Exception e) {
 			globalLogger.severe("Failed to refresh data: " + e.toString());
