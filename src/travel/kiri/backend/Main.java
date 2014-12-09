@@ -122,7 +122,7 @@ public class Main {
 		}
 		try {
 			PrintStream outStream = new PrintStream(homeDirectory + "/" + TRACKS_CONF + ".tmp");
-			puller.pull(new File(MYSQL_PROPERTIES), outStream);
+			puller.pull(new File(homeDirectory + "/" + MYSQL_PROPERTIES), outStream);
 			
 			new File(homeDirectory + "/" + TRACKS_CONF).delete();
 			new File(homeDirectory + "/" + TRACKS_CONF + ".tmp").renameTo(new File(homeDirectory + "/" + TRACKS_CONF));
