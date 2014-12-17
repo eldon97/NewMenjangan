@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.file.CopyOption;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -62,7 +61,6 @@ public class Main {
 		logFileHandler.setFormatter(new SimpleFormatter());
 		globalLogger.addHandler(logFileHandler);
 		
-		pullData();
 		server = new NewMenjanganServer(portNumber, homeDirectory);
 
 		// Setup timer
@@ -141,7 +139,7 @@ public class Main {
 
 			
 			if (!fileEquals(new File(tracksConf), new File(tracksConfTemp))) {
-				// Use nio library for consistent behavior accross OS.
+				// Use nio library for consistent behavior across OS.
 				Path source = FileSystems.getDefault().getPath(tracksConfTemp);
 				Path dest = FileSystems.getDefault().getPath(tracksConf);
 				Files.copy(source, dest, StandardCopyOption.REPLACE_EXISTING);
