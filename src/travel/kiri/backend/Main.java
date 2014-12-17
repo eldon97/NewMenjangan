@@ -1,10 +1,17 @@
 package travel.kiri.backend;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.file.CopyOption;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.sql.Date;
 import java.text.DateFormat;
 import java.util.Calendar;
@@ -116,21 +123,81 @@ public class Main {
 		}
 	}	
 	
+	/**
+	 * Pulls data from SQL and external sources
+	 * @return true if success and data has changed, false otherwise
+	 */
 	private static boolean pullData() {
 		if (puller == null) {
 			puller = new DataPuller();
 		}
 		try {
-			PrintStream outStream = new PrintStream(homeDirectory + "/" + TRACKS_CONF + ".tmp");
+			final String tracksConf = homeDirectory + "/" + TRACKS_CONF;
+			final String tracksConfTemp = homeDirectory + "/" + TRACKS_CONF + ".tmp";
+
+			PrintStream outStream = new PrintStream(tracksConfTemp);
 			puller.pull(new File(homeDirectory + "/" + MYSQL_PROPERTIES), outStream);
+			outStream.close();
+
 			
-			new File(homeDirectory + "/" + TRACKS_CONF).delete();
-			new File(homeDirectory + "/" + TRACKS_CONF + ".tmp").renameTo(new File(homeDirectory + "/" + TRACKS_CONF));
+			if (!fileEquals(new File(tracksConf), new File(tracksConfTemp))) {
+				// Use nio library for consistent behavior accross OS.
+				Path source = FileSystems.getDefault().getPath(tracksConfTemp);
+				Path dest = FileSystems.getDefault().getPath(tracksConf);
+				Files.copy(source, dest, StandardCopyOption.REPLACE_EXISTING);
+			} else {
+				globalLogger.info("Data pulled successfuly, but no changes.");
+				return false;
+			}
 			return true;
 		} catch (Exception e) {
 			globalLogger.severe("Failed to refresh data: " + e.toString());
 			return false;
 		}
+	}
+	
+	/**
+	 * Checks if two files are identical, binary-wise
+	 * @param file1 the first file to check
+	 * @param file2 the second file to check
+	 * @return true if identical, false otherwise
+	 */
+	private static boolean fileEquals(File file1, File file2) {
+		if (file1.length() != file2.length()) {
+			return false;
+		}
+		BufferedReader reader1 = null;
+		BufferedReader reader2 = null;
+		try {
+			reader1 = new BufferedReader(new FileReader(file1));
+			reader2 = new BufferedReader(new FileReader(file2));
+			int c1, c2, position = 0;
+			while ((c1 = reader1.read()) != -1) {
+				c2 = reader2.read();
+				if (c1 != c2) {
+					globalLogger.info("Tracks configuration differs in offset " + position);
+					return false;
+				}
+				position++;
+			}
+			reader1.close();
+			reader2.close();
+		} catch (Exception e) {
+			globalLogger.severe(e.getMessage());
+			return false;
+		} finally {
+			try {
+				reader1.close();
+			} catch (Exception e1) {
+				// void
+			}
+			try {
+				reader2.close();
+			} catch (Exception e1) {
+				// void
+			}			
+		}
+		return true;
 	}
 	
 	static class DataRefresher extends TimerTask {
