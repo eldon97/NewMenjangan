@@ -13,3 +13,20 @@
     * In Debian/Ubuntu: `sudo /sbin/insserv /etc/init.d/newmjnserve` or `sudo /usr/lib/insserv/insserv /etc/init.d/newmjnserve`
     * In CentOS: `sudo chkconfig --add newmjnserve
 9. You may want to start the service immediately (`/etc/init.d/newmjnserve start`)
+
+## MySQL Server Installation ##
+
+Reference from http://azure.microsoft.com/blog/2014/09/02/create-your-own-dedicated-mysql-server-for-your-azure-websites/
+
+1. Install Server `sudo apt-get install mysql-server mysql-client`
+2. Check service `sudo service mysql status`
+3. Open port 3306 `sudo iptables -A INPUT -i eth0 -p tcp -m tcp --dport 3306 -j ACCEPT`
+4. Check port `sudo netstat -anltp|grep :3306`
+5. Create SSH tunnel `sudo ssh -fNg -L 3307:127.0.0.1:3306 pascal@newmenjangan.cloudapp.net`
+6. Create an endpoint for the port 3307 in the dashboard of the VM in Azure
+7. Connect to mysql `mysql -u root -p`
+    * Create user `CREATE USER 'tirtayasa'@'%' IDENTIFIED BY '***';`
+    * Create database `CREATE DATABASE tirtayasa`
+    * Grant privileges `GRANT ALL PRIVILEGES ON tirtayasa.* TO 'tirtayasa'@'%';`
+    * Flush privileges `FLUSH PRIVILEGES;`
+8. Fill tables using phpmyadmin
