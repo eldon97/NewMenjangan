@@ -31,8 +31,9 @@ public class DataPuller {
 	public static final String ANGKOTWEBID_URL = "https://angkot.web.id/route/transportation/%s.json";
 	public static final String DEFAULT_PENALTY = "0.05";
 	public static final double MAX_LINK_DISTANCE = 0.5;
-	
-	public void pull(File sqlPropertiesFile, PrintStream output) throws IOException, SQLException {
+
+	public void pull(File sqlPropertiesFile, PrintStream output)
+			throws IOException, SQLException {
 		Properties sqlProperties = new Properties();
 		sqlProperties.load(new FileReader(sqlPropertiesFile));
 		Connection connection = null;
@@ -45,19 +46,33 @@ public class DataPuller {
 				.executeQuery("SELECT trackTypeId, trackId, AsText(geodata), pathloop, penalty, transferNodes, internalInfo FROM tracks ORDER BY trackId");
 
 		while (result.next()) {
-			if (result.getString(7) != null && result.getString(7).startsWith("angkotwebid:")) {
+			if (result.getString(7) != null
+					&& result.getString(7).startsWith("angkotwebid:")) {
 				String[] fields = result.getString(7).split(":");
-				String angkotWebIdTrack = formatTrackFromAngkotWebId(fields[1], result.getString(1), result.getString(2));
-				if (angkotWebIdTrack != null) {
-					output.println(angkotWebIdTrack);
+				AngkotWebIdResult awiResult = formatTrackFromAngkotWebId(
+						fields[1], result.getString(1), result.getString(2));
+				if (awiResult != null) {
+					output.println(awiResult.getTrackInConfFormat());
+					Statement updateStatement = connection.createStatement();
+					String sql = String
+							.format("UPDATE tracks SET internalInfo='%s', geodata=%s WHERE trackTypeId='%s' AND trackId='%s'",
+									fields[0] + ':' + fields[1]
+											+ ':' + awiResult.lastUpdate,
+									awiResult.getTrackInMySQLFormat(),
+									result.getString(1),
+									result.getString(2));
+					updateStatement
+							.execute(sql);
 				}
 			} else if (result.getString(3) != null) {
-				output.println(formatTrack(result.getString(1), result
+				AngkotWebIdResult awiResult = formatTrack(result.getString(1), result
 						.getString(2), lineStringToLngLatArray(result
 						.getString(3)), result.getString(4).equals("1") ? true
-						: false, result.getString(5), result.getString(6)));
+						: false, result.getString(5), result.getString(6), 0);
+				output.println(awiResult.getTrackInConfFormat());
 			} else {
-				throw new DataPullerException("Route not found everywhere for " + result.getString(1) + "." + result.getString(2));
+				throw new DataPullerException("Route not found everywhere for "
+						+ result.getString(1) + "." + result.getString(2));
 			}
 		}
 
@@ -93,9 +108,9 @@ public class DataPuller {
 		return EARTH_RADIUS * c;
 	}
 
-	private String formatTrack(String trackTypeId, String trackId,
+	private AngkotWebIdResult formatTrack(String trackTypeId, String trackId,
 			LngLatAlt[] geodata, boolean isPathLoop, String penalty,
-			String transferNodesStr) {
+			String transferNodesStr, int lastUpdate) {
 
 		// Setup track info
 		LngLatAlt[] tracks = geodata;
@@ -118,7 +133,6 @@ public class DataPuller {
 		int insertedNodes = 0;
 		int[] transferNodesOffset = new int[tracks.length];
 		LngLatAlt previousPoint = null;
-
 
 		// Print tracks
 		for (int i = 0; i < tracks.length; i++) {
@@ -162,83 +176,139 @@ public class DataPuller {
 				transitNodes[i][j] += transferNodesOffset[transitNodes[i][j]];
 			}
 		}
-		StringBuilder finalText = new StringBuilder();
-		finalText.append(trackTypeId + "." + trackId + "\t");
-		finalText.append(penalty + "\t");
-		finalText.append(trackString.size() + "\t");
+		StringBuilder finalTextConf = new StringBuilder();
+		StringBuilder finalTextMySQL = new StringBuilder("GeomFromText('LineString(");
+		finalTextConf.append(trackTypeId + "." + trackId + "\t");
+		finalTextConf.append(penalty + "\t");
+		finalTextConf.append(trackString.size() + "\t");
 		for (int i = 0; i < trackString.size(); i++) {
 			if (i > 0) {
-				finalText.append(" ");
+				finalTextConf.append(" ");
+				finalTextMySQL.append(",");
 			}
-			finalText.append(String.format("%.6f %.6f", trackString.get(i)
+			finalTextConf.append(String.format("%.6f %.6f", trackString.get(i)
 					.getLatitude(), trackString.get(i).getLongitude()));
+			finalTextMySQL.append(String.format("%.6f %.6f", trackString.get(i)
+					.getLongitude(), trackString.get(i).getLatitude()));
 		}
-		finalText.append("\t");
-		finalText.append((isPathLoop ? "1" : "0") + "\t");
+		finalTextConf.append("\t");
+		finalTextConf.append((isPathLoop ? "1" : "0") + "\t");
 		for (int i = 0; i < transitNodes.length; i++) {
 			if (i > 0) {
-				finalText.append(",");
+				finalTextConf.append(",");
 			}
 			if (transitNodes[i][0] == transitNodes[i][1]) {
-				finalText.append(transitNodes[i][0]);
+				finalTextConf.append(transitNodes[i][0]);
 			} else {
-				finalText.append(String.format("%d-%d", transitNodes[i][0],
+				finalTextConf.append(String.format("%d-%d", transitNodes[i][0],
 						transitNodes[i][1]));
 			}
 		}
-		return finalText.toString();
+		finalTextMySQL.append(")')");
+		return new AngkotWebIdResult(lastUpdate, finalTextConf.toString(), finalTextMySQL.toString());
 	}
 
-	private String formatTrackFromAngkotWebId(String angkotId, String trackTypeId, String trackId) throws IOException {
+	private AngkotWebIdResult formatTrackFromAngkotWebId(String angkotId,
+			String trackTypeId, String trackId) throws IOException {
 		URL url = new URL(String.format(ANGKOTWEBID_URL, angkotId));
-		Main.globalLogger.info("Fetching " + trackTypeId + "." + trackId + " from " + url + "...");
+		Main.globalLogger.info("Fetching " + trackTypeId + "." + trackId
+				+ " from " + url + "...");
 		JsonFactory factory = new JsonFactory();
 		JsonParser parser = factory.createParser(url);
 
+		int lastUpdate = -1;
 		while (!parser.isClosed()) {
 			JsonToken token = parser.nextToken();
 			if (token == null) {
 				break;
 			}
 			if (JsonToken.FIELD_NAME.equals(token)
+					&& "updated".equals(parser.getCurrentName())) {
+				parser.nextValue();
+				lastUpdate = parser.getValueAsInt();
+			} else if (JsonToken.FIELD_NAME.equals(token)
 					&& "geojson".equals(parser.getCurrentName())) {
 				parser.nextBooleanValue();
-				Feature feature = new ObjectMapper()
-						.readValue(parser, Feature.class);
-				List<List<LngLatAlt>> coordinates = ((MultiLineString)feature.getGeometry()).getCoordinates();
+				Feature feature = new ObjectMapper().readValue(parser,
+						Feature.class);
+				List<List<LngLatAlt>> coordinates = ((MultiLineString) feature
+						.getGeometry()).getCoordinates();
 				List<LngLatAlt> finalCoordinates;
 				boolean isPathLoop;
 				if (coordinates.size() == 0) {
-					Main.globalLogger.warning(String.format("%s.%s/%s has zero routes, will be ignored.", trackTypeId, trackId, angkotId));
+					Main.globalLogger.warning(String.format(
+							"%s.%s/%s has zero routes, will be ignored.",
+							trackTypeId, trackId, angkotId));
 					return null;
 				}
 				if (coordinates.size() == 1) {
 					finalCoordinates = coordinates.get(0);
-					isPathLoop = computeDistance(finalCoordinates.get(0), finalCoordinates.get(finalCoordinates.size() - 1)) < MAX_LINK_DISTANCE;
-				} else if (coordinates.size() == 2){
+					isPathLoop = computeDistance(finalCoordinates.get(0),
+							finalCoordinates.get(finalCoordinates.size() - 1)) < MAX_LINK_DISTANCE;
+				} else if (coordinates.size() == 2) {
 					List<LngLatAlt> c1 = coordinates.get(0);
 					List<LngLatAlt> c2 = coordinates.get(1);
-					if (computeDistance(c1.get(c1.size() - 1), c2.get(0)) < MAX_LINK_DISTANCE && computeDistance(c1.get(0), c2.get(c2.size() - 1)) < MAX_LINK_DISTANCE) {
+					if (computeDistance(c1.get(c1.size() - 1), c2.get(0)) < MAX_LINK_DISTANCE
+							&& computeDistance(c1.get(0), c2.get(c2.size() - 1)) < MAX_LINK_DISTANCE) {
 						finalCoordinates = c1;
 						finalCoordinates.addAll(c2);
 						isPathLoop = true;
-					} else if (computeDistance(c1.get(0), c2.get(0)) < MAX_LINK_DISTANCE && computeDistance(c1.get(c1.size() - 1), c2.get(c2.size() - 1)) < MAX_LINK_DISTANCE) {
+					} else if (computeDistance(c1.get(0), c2.get(0)) < MAX_LINK_DISTANCE
+							&& computeDistance(c1.get(c1.size() - 1),
+									c2.get(c2.size() - 1)) < MAX_LINK_DISTANCE) {
 						finalCoordinates = c1;
 						for (int j = c2.size() - 1; j >= 0; j--) {
 							finalCoordinates.add(c2.get(j));
 						}
 						isPathLoop = true;
 					} else {
-						throw new DataPullerException(String.format("Does not support linking tracks that far away: %s.%s/%s ", trackTypeId, trackId, angkotId));
+						throw new DataPullerException(
+								String.format(
+										"Does not support linking tracks that far away: %s.%s/%s ",
+										trackTypeId, trackId, angkotId));
 					}
 				} else {
-					Main.globalLogger.warning(String.format("Does not support tracks with %d routes: %s.%s/%s ", coordinates.size(), trackTypeId, trackId, angkotId));
+					Main.globalLogger
+							.warning(String
+									.format("Does not support tracks with %d routes: %s.%s/%s ",
+											coordinates.size(), trackTypeId,
+											trackId, angkotId));
 					return null;
 				}
-				return formatTrack(trackTypeId, trackId, finalCoordinates.toArray(new LngLatAlt[0]), isPathLoop, DEFAULT_PENALTY, null);
+				AngkotWebIdResult result = formatTrack(trackTypeId, trackId,
+						finalCoordinates.toArray(new LngLatAlt[0]), isPathLoop,
+						DEFAULT_PENALTY, null, lastUpdate);
+				return result;
 			}
 		}
 		Main.globalLogger.warning("Doesn't have GeoJSON info: " + angkotId);
 		return null;
+	}
+
+	public static class AngkotWebIdResult {
+		private final int lastUpdate;
+		private final String trackInConfFormat;
+		private final String trackInMySQLFormat;
+
+		public AngkotWebIdResult(int lastUpdate, String trackInConfFormat,
+				String trackInMySQLFormat) {
+			super();
+			this.lastUpdate = lastUpdate;
+			this.trackInConfFormat = trackInConfFormat;
+			this.trackInMySQLFormat = trackInMySQLFormat;
+		}
+
+		public int getLastUpdate() {
+			return lastUpdate;
+		}
+
+		public String getTrackInConfFormat() {
+			return trackInConfFormat;
+		}
+
+		public String getTrackInMySQLFormat() {
+			return trackInMySQLFormat;
+		}
+
 	}
 }
