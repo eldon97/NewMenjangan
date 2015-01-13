@@ -13,6 +13,8 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import org.geojson.Feature;
 import org.geojson.LngLatAlt;
@@ -23,12 +25,15 @@ import travel.kiri.backend.Main;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class DataPuller {
 	public static final double EARTH_RADIUS = 6371.0;
 	public static final Double MAX_DISTANCE = 0.1;
 	public static final String ANGKOTWEBID_URL = "https://angkot.web.id/route/transportation/%s.json";
+	public static final String ANGKOTWEBID_ROUTELIST_PREFIX = "https://angkot.web.id/route/transportation-list.json?id=";
+	public static final int ANGKOTWEBID_MAX_ROUTELIST = 200;
 	public static final String DEFAULT_PENALTY = "0.05";
 	public static final double MAX_LINK_DISTANCE = 0.5;
 
@@ -41,35 +46,72 @@ public class DataPuller {
 				"jdbc:mysql://%s/%s?user=%s&password=%s",
 				sqlProperties.get("host"), sqlProperties.get("database"),
 				sqlProperties.get("user"), sqlProperties.get("password")));
+		
+		// Look for angkot.web.id refreshes
 		Statement statement = connection.createStatement();
-		ResultSet result = statement
-				.executeQuery("SELECT trackTypeId, trackId, AsText(geodata), pathloop, penalty, transferNodes, internalInfo FROM tracks ORDER BY trackId");
+		ResultSet result = statement.executeQuery("SELECT trackTypeId, trackId, AsText(geodata), internalInfo FROM tracks");
+		SortedMap<Integer, AngkotWebIdCacheInfo> obsoleteRoutesMap = new TreeMap<Integer, AngkotWebIdCacheInfo>();
+		while (result.next()) {
+			if (result.getString(4).startsWith("angkotwebid:")) {
+				String[] fields = result.getString(4).split(":");
+				int id = Integer.parseInt(fields[1]);
+				int lastUpdate = fields.length > 2 ? Integer.parseInt(fields[2]) : 0;
+				obsoleteRoutesMap.put(id, new AngkotWebIdCacheInfo(result.getString(1), result.getString(2), lastUpdate, id, result.getString(3) != null));
+			}
+		}
+		List<Integer> obsoleteRoutesList = new ArrayList<Integer>(obsoleteRoutesMap.keySet());
+		for (int i = 0; i < (obsoleteRoutesList.size() + ANGKOTWEBID_MAX_ROUTELIST - 1) / ANGKOTWEBID_MAX_ROUTELIST; i++) {
+			StringBuilder urlBuilder = new StringBuilder(ANGKOTWEBID_ROUTELIST_PREFIX);
+			for (int j = i * 250; j < Math.min((i + 1) * 250, obsoleteRoutesList.size()); j++) {
+				urlBuilder.append(j > i * 250 ? "|" : "");
+				urlBuilder.append(obsoleteRoutesList.get(j));
+			}
+			Main.globalLogger.info("Fetching " + urlBuilder + "...");
+			ObjectMapper mapper = new ObjectMapper();
+			JsonNode parent = mapper.readTree(new URL(urlBuilder.toString()));
+			JsonNode transportations = parent.get("transportations");
+			for (int j = 0; j < transportations.size(); j++) {
+				JsonNode transportation = transportations.get(j);
+				int updated = transportation.get("updated").asInt();
+				int id = transportation.get("id").asInt();
+				if (obsoleteRoutesMap.get(id).pathAvailable && obsoleteRoutesMap.get(id).lastUpdate >= updated) {
+					obsoleteRoutesMap.remove(id);
+				}
+			}
+		}
+		
+		statement = connection.createStatement();
+		result = statement
+				.executeQuery("SELECT trackTypeId, trackId, AsText(geodata), pathloop, penalty, transferNodes, internalInfo FROM tracks ORDER BY trackTypeId, trackId");
 
 		while (result.next()) {
+			RouteResult routeResult;
 			if (result.getString(7) != null
 					&& result.getString(7).startsWith("angkotwebid:")) {
 				String[] fields = result.getString(7).split(":");
-				AngkotWebIdResult awiResult = formatTrackFromAngkotWebId(
-						fields[1], result.getString(1), result.getString(2));
-				if (awiResult != null) {
-					output.println(awiResult.getTrackInConfFormat());
-					Statement updateStatement = connection.createStatement();
-					String sql = String
-							.format("UPDATE tracks SET internalInfo='%s', geodata=%s WHERE trackTypeId='%s' AND trackId='%s'",
-									fields[0] + ':' + fields[1]
-											+ ':' + awiResult.lastUpdate,
-									awiResult.getTrackInMySQLFormat(),
-									result.getString(1),
-									result.getString(2));
-					updateStatement
-							.execute(sql);
+				if (obsoleteRoutesMap.containsKey(Integer.parseInt(fields[1]))) {
+					routeResult = formatTrackFromAngkotWebId(
+							fields[1], result.getString(1), result.getString(2));
+					if (routeResult != null) {
+						Statement updateStatement = connection.createStatement();
+						String sql = String
+								.format("UPDATE tracks SET internalInfo='%s', geodata=%s WHERE trackTypeId='%s' AND trackId='%s'",
+										fields[0] + ':' + fields[1]
+												+ ':' + routeResult.lastUpdate,
+										routeResult.getTrackInMySQLFormat(),
+										result.getString(1),
+										result.getString(2));
+						updateStatement
+								.execute(sql);
+					}					
+				} else {
+					routeResult = formatTrack(result.getString(1), result
+							.getString(2), lineStringToLngLatArray(result
+							.getString(3)), result.getString(4).equals("1") ? true
+							: false, result.getString(5), result.getString(6), 0);
 				}
+				output.println(routeResult.getTrackInConfFormat());
 			} else if (result.getString(3) != null) {
-				AngkotWebIdResult awiResult = formatTrack(result.getString(1), result
-						.getString(2), lineStringToLngLatArray(result
-						.getString(3)), result.getString(4).equals("1") ? true
-						: false, result.getString(5), result.getString(6), 0);
-				output.println(awiResult.getTrackInConfFormat());
 			} else {
 				throw new DataPullerException("Route not found everywhere for "
 						+ result.getString(1) + "." + result.getString(2));
@@ -108,7 +150,7 @@ public class DataPuller {
 		return EARTH_RADIUS * c;
 	}
 
-	private AngkotWebIdResult formatTrack(String trackTypeId, String trackId,
+	private RouteResult formatTrack(String trackTypeId, String trackId,
 			LngLatAlt[] geodata, boolean isPathLoop, String penalty,
 			String transferNodesStr, int lastUpdate) {
 
@@ -205,10 +247,10 @@ public class DataPuller {
 			}
 		}
 		finalTextMySQL.append(")')");
-		return new AngkotWebIdResult(lastUpdate, finalTextConf.toString(), finalTextMySQL.toString());
+		return new RouteResult(lastUpdate, finalTextConf.toString(), finalTextMySQL.toString());
 	}
 
-	private AngkotWebIdResult formatTrackFromAngkotWebId(String angkotId,
+	private RouteResult formatTrackFromAngkotWebId(String angkotId,
 			String trackTypeId, String trackId) throws IOException {
 		URL url = new URL(String.format(ANGKOTWEBID_URL, angkotId));
 		Main.globalLogger.info("Fetching " + trackTypeId + "." + trackId
@@ -275,7 +317,7 @@ public class DataPuller {
 											trackId, angkotId));
 					return null;
 				}
-				AngkotWebIdResult result = formatTrack(trackTypeId, trackId,
+				RouteResult result = formatTrack(trackTypeId, trackId,
 						finalCoordinates.toArray(new LngLatAlt[0]), isPathLoop,
 						DEFAULT_PENALTY, null, lastUpdate);
 				return result;
@@ -285,12 +327,12 @@ public class DataPuller {
 		return null;
 	}
 
-	public static class AngkotWebIdResult {
+	public static class RouteResult {
 		private final int lastUpdate;
 		private final String trackInConfFormat;
 		private final String trackInMySQLFormat;
 
-		public AngkotWebIdResult(int lastUpdate, String trackInConfFormat,
+		public RouteResult(int lastUpdate, String trackInConfFormat,
 				String trackInMySQLFormat) {
 			super();
 			this.lastUpdate = lastUpdate;
@@ -310,5 +352,19 @@ public class DataPuller {
 			return trackInMySQLFormat;
 		}
 
+	}
+	
+	private static class AngkotWebIdCacheInfo {
+		public final int lastUpdate;
+		public final boolean pathAvailable;
+		
+		public AngkotWebIdCacheInfo(String trackTypeId, String trackId,
+				int lastUpdate, int id, boolean pathAvailable) {
+			super();
+			this.lastUpdate = lastUpdate;
+			this.pathAvailable = pathAvailable;
+		}
+		
+		
 	}
 }

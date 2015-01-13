@@ -61,6 +61,7 @@ public class Main {
 		logFileHandler.setFormatter(new SimpleFormatter());
 		globalLogger.addHandler(logFileHandler);
 		
+		pullData();
 		server = new NewMenjanganServer(portNumber, homeDirectory);
 
 		// Setup timer
