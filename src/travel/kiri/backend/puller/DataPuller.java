@@ -112,6 +112,11 @@ public class DataPuller {
 				}
 				output.println(routeResult.getTrackInConfFormat());
 			} else if (result.getString(3) != null) {
+				routeResult = formatTrack(result.getString(1), result
+						.getString(2), lineStringToLngLatArray(result
+						.getString(3)), result.getString(4).equals("1") ? true
+						: false, result.getString(5), result.getString(6), 0);
+				output.println(routeResult.getTrackInConfFormat());
 			} else {
 				throw new DataPullerException("Route not found everywhere for "
 						+ result.getString(1) + "." + result.getString(2));
