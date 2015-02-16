@@ -49,6 +49,7 @@ public class Worker {
 		readGraph(homeDirectory + "/" + Main.TRACKS_CONF);
 		Main.globalLogger.info("Tracks done");
 		linkAngkots();
+		System.gc();
 		Main.globalLogger.info("Angkot links done");
 		long end = System.currentTimeMillis();
 		double time = (end-start)/1000.0;
