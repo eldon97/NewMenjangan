@@ -362,8 +362,8 @@ public class Worker {
 					for (int i = 0; i < numOfNodes; i++) {
 						int nodeIndex = nodes.size();
 						// parse lat and lon
-						double lat = Double.parseDouble(scan.next());
-						double lon = Double.parseDouble(scan.next());
+						float lat = Float.parseFloat(scan.next());
+						float lon = Float.parseFloat(scan.next());
 						GraphNode node = new GraphNode(new LatLon(lat, lon),
 								track);
 						track.addNode(node);
@@ -433,30 +433,30 @@ public class Worker {
 	void linkAngkots() {
 		
 		KDTree<GraphNodeContainer> kd=new KDTree<GraphNodeContainer>(2);
-		double minLat=Double.POSITIVE_INFINITY;
-		double minLon=Double.POSITIVE_INFINITY;
-		double maxLat=Double.NEGATIVE_INFINITY;
-		double maxLon=Double.NEGATIVE_INFINITY;
+		float minLat=Float.POSITIVE_INFINITY;
+		float minLon=Float.POSITIVE_INFINITY;
+		float maxLat=Float.NEGATIVE_INFINITY;
+		float maxLon=Float.NEGATIVE_INFINITY;
 		for(int i=0;i<nodes.size();i++)
 		{
 			GraphNode n = nodes.get(i);
-			double[] key = {n.getLocation().getLat(), n.getLocation().getLon()};
+			double[] key = {n.getLocation().lat, n.getLocation().lon};
 			
-			if(minLat>n.getLocation().getLat())
+			if(minLat>n.getLocation().lat)
 			{
-				minLat=n.getLocation().getLat();
+				minLat=n.getLocation().lat;
 			}
-			if(maxLat<n.getLocation().getLat())
+			if(maxLat<n.getLocation().lat)
 			{
-				maxLat=n.getLocation().getLat();
+				maxLat=n.getLocation().lat;
 			}
-			if(minLon>n.getLocation().getLon())
+			if(minLon>n.getLocation().lon)
 			{
-				minLon=n.getLocation().getLon();
+				minLon=n.getLocation().lon;
 			}
-			if(maxLon<n.getLocation().getLon())
+			if(maxLon<n.getLocation().lon)
 			{
-				maxLon=n.getLocation().getLon();
+				maxLon=n.getLocation().lon;
 			}
 			
 			boolean ok = true;
@@ -482,8 +482,8 @@ public class Worker {
 		for(int i=0;i<nodes.size();i++)
 		{
 			GraphNode n = nodes.get(i);
-			double[] lowk = {n.getLocation().getLat()-(threshold*latPerKm*global_maximum_transfer_distance), n.getLocation().getLon()-(threshold*lonPerKm*global_maximum_transfer_distance)};
-			double[] uppk = {n.getLocation().getLat()+(threshold*latPerKm*global_maximum_transfer_distance), n.getLocation().getLon()+(threshold*lonPerKm*global_maximum_transfer_distance)};
+			double[] lowk = {n.getLocation().lat-(threshold*latPerKm*global_maximum_transfer_distance), n.getLocation().lon-(threshold*lonPerKm*global_maximum_transfer_distance)};
+			double[] uppk = {n.getLocation().lat+(threshold*latPerKm*global_maximum_transfer_distance), n.getLocation().lon+(threshold*lonPerKm*global_maximum_transfer_distance)};
 			List<GraphNodeContainer> nearby=null;
 			try {
 				nearby =  kd.range(lowk, uppk);

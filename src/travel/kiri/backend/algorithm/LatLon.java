@@ -11,15 +11,15 @@ public class LatLon {
 	 */
 	private static final double EARTH_RADIUS = 6371.0;
 	
-	public final double lat;
-	public final double lon;
+	public final float lat;
+	public final float lon;
 	
 	/**
 	 * Creates a new lat/lon instance
 	 * @param lat latitude
 	 * @param lon longitude
 	 */
-	public LatLon(double lat, double lon) {
+	public LatLon(float lat, float lon) {
 		this.lat = lat;
 		this.lon = lon;
 	}
@@ -27,18 +27,8 @@ public class LatLon {
 	public LatLon(String latlon)
 	{
 		String[] ll = latlon.split(",");
-		this.lat = Double.parseDouble(ll[0]);
-		this.lon = Double.parseDouble(ll[1]);
-	}
-	
-	public double getLat()
-	{
-		return lat;
-	}
-	
-	public double getLon()
-	{
-		return lon;
+		this.lat = Float.parseFloat(ll[0]);
+		this.lon = Float.parseFloat(ll[1]);
 	}
 	
 	public String toString()
