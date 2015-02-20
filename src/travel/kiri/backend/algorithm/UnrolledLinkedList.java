@@ -6,7 +6,6 @@ import java.util.ListIterator;
 import java.util.NoSuchElementException;
 
 /**
- * TODO rename to UnrolledLinkedList
  * A custom linked list that:
  * <ul>
  *   <li>Provides O(1) {@link #addAll(FastLinkedList))}
@@ -19,7 +18,7 @@ import java.util.NoSuchElementException;
  * @param <E> The object type.
  * 
  */
-public class FastLinkedList<E> implements Iterable<E> {
+public class UnrolledLinkedList<E> implements Iterable<E> {
 
 	/**
 	 * ArrayList storage for the nodes.
@@ -29,13 +28,13 @@ public class FastLinkedList<E> implements Iterable<E> {
 	/**
 	 * Reference to the next list, if available
 	 */
-	private FastLinkedList<E> nextList;
+	private UnrolledLinkedList<E> nextList;
 	
 	private class FastLinkedListIterator implements ListIterator<E> {
-		FastLinkedList<E> currentList;
+		UnrolledLinkedList<E> currentList;
 		int currentIndex, globalIndex;
 
-		public FastLinkedListIterator(FastLinkedList<E> firstList) {
+		public FastLinkedListIterator(UnrolledLinkedList<E> firstList) {
 			currentList = firstList;
 			currentIndex = -1;
 			globalIndex = -1;
@@ -97,21 +96,21 @@ public class FastLinkedList<E> implements Iterable<E> {
 
 		@Override
 		public void add(E e) {
-			currentList.push(e);
+			currentList.add(e);
 		}
 		
 	}
 	
-	public FastLinkedList() {
+	public UnrolledLinkedList() {
 		this.internalArray = new ArrayList<E>();
 		this.nextList = null;
 	}
 
 	/**
-	 * Add an element to list. The add position is not defined. TODO rename to "add"
+	 * Add an element to list. The add position is not defined.
 	 * @param e the node element to add
 	 */
-	public void push(E e)
+	public void add(E e)
 	{
 		internalArray.add(e);
 	}
@@ -121,8 +120,8 @@ public class FastLinkedList<E> implements Iterable<E> {
 		return new FastLinkedListIterator(this);
 	}
 
-	public void addAll(FastLinkedList<E> elements) {
-		FastLinkedList<E> list = this;
+	public void addAll(UnrolledLinkedList<E> elements) {
+		UnrolledLinkedList<E> list = this;
 		while (list.nextList != null) {
 			list = list.nextList;
 		}
@@ -131,7 +130,7 @@ public class FastLinkedList<E> implements Iterable<E> {
 
 	public int size() {
 		int totalSize = 0;
-		FastLinkedList<E> list = this;
+		UnrolledLinkedList<E> list = this;
 		while (list != null) {
 			totalSize += internalArray.size();
 			list = list.nextList;

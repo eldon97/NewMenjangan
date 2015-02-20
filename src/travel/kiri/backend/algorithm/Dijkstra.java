@@ -86,7 +86,7 @@ public class Dijkstra {
 				break;
 			}
 			
-			FastLinkedList<GraphEdge> edges = graph.get(currentNode.baseIndex).edges;
+			UnrolledLinkedList<GraphEdge> edges = graph.get(currentNode.baseIndex).edges;
 			
 			for(GraphEdge edge : edges)
 			{

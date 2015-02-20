@@ -15,7 +15,7 @@ public class GraphNode{
 	/**
 	 * List of out-edges from this node.
 	 */
-	FastLinkedList<GraphEdge> edges;
+	UnrolledLinkedList<GraphEdge> edges;
 	
 	/**
 	 * A reverse-reference to the track information.
@@ -37,10 +37,10 @@ public class GraphNode{
 		this.location = location;
 		this.track = track;
 		this.isTransferNode = false;
-		edges = new FastLinkedList<GraphEdge>();
+		edges = new UnrolledLinkedList<GraphEdge>();
 	}
 	
-	public FastLinkedList<GraphEdge> getEdges()
+	public UnrolledLinkedList<GraphEdge> getEdges()
 	{
 		return edges;
 	}
@@ -48,7 +48,7 @@ public class GraphNode{
 	public void push_back(int node, float weight)
 	{
 		GraphEdge edge = new GraphEdge(node, weight);
-		edges.push(edge);
+		edges.add(edge);
 	}
 	
 	public void link(GraphNode nextNode)
