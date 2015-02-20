@@ -1,90 +1,88 @@
 package travel.kiri.backend.algorithm;
 
-import java.util.AbstractSequentialList;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
 
 /**
- * A custom linked list that provides O(1) {@link #addAll(java.util.Collection)}
- * performance, if the parameter is also a {@link FastLinkedList}.
- * FIXME implement this. Note coba dulu pakai extends {@link AbstractSequentialList}, kalau sulit
- * dilepas saja tidak apa2, refer ke dijsktra.h/EdgeList.
+ * TODO rename to UnrolledLinkedList
+ * A custom linked list that:
+ * <ul>
+ *   <li>Provides O(1) {@link #addAll(FastLinkedList))}
+ *       performance.</li>
+ *   <li>Memory-efficient by using ArrayList whenever possible, to prevent
+ *       usage of "next" references, where costly esp in 64-bit machine.</lo>
+ * </ul>
  * @author PascalAlfadian
  *
  * @param <E> The object type.
  * 
- * FIXME sementara pakai linked list punya java dulu, nanti ganti jadi AbstractSequentialList<E>
  */
-public class FastLinkedList<E> extends AbstractSequentialList<E>{
+public class FastLinkedList<E> implements Iterable<E> {
 
-	private class Node {
-		/** The value that is contained in this list node. */
-		E info;
-		/** The next node in the list. */
-		Node next;
-	}
+	/**
+	 * ArrayList storage for the nodes.
+	 */
+	private ArrayList<E> internalArray;
+	
+	/**
+	 * Reference to the next list, if available
+	 */
+	private FastLinkedList<E> nextList;
 	
 	private class FastLinkedListIterator implements ListIterator<E> {
+		FastLinkedList<E> currentList;
+		int currentIndex, globalIndex;
 
-		Node currentNode;
-		int currentIndex;
-		
-		public FastLinkedListIterator() {
-			currentNode = null;
+		public FastLinkedListIterator(FastLinkedList<E> firstList) {
+			currentList = firstList;
 			currentIndex = -1;
+			globalIndex = -1;
 		}
-		
-		public FastLinkedListIterator(int index) throws IndexOutOfBoundsException {
-			this();
-			if (index < 0) {
-				throw new IndexOutOfBoundsException();
-			}
-			while (index-- > 0) {
-				if (hasNext()) {
-					next();
-				} else {
-					throw new IndexOutOfBoundsException();
-				}
-			}
-		}
-		
+
 		@Override
 		public boolean hasNext() {
-			return head != null && currentNode != tail;
+			// true, if there is still next element in array, or otherwise still have next in the linked list
+			return currentIndex < currentList.internalArray.size() - 1
+					|| (currentList.nextList != null && currentList.nextList.internalArray
+							.size() > 0);
 		}
 
 		@Override
 		public E next() throws NoSuchElementException {
 			if (!hasNext()) {
 				throw new NoSuchElementException();
-			}
-			if (currentNode == null) {
-				currentNode = head;
-			} else {
-				currentNode = currentNode.next;
-			}
+			}			
+			globalIndex++;
 			currentIndex++;
-			return currentNode.info;
+			if (currentIndex < currentList.internalArray.size()) {
+				// do nothing, will return later;
+			} else {
+				currentIndex = 0;
+				currentList = currentList.nextList;
+			}
+			return currentList.internalArray.get(currentIndex);
 		}
 
 		@Override
 		public boolean hasPrevious() {
-			throw new UnsupportedOperationException("This is slow, not implemented!");
+			throw new UnsupportedOperationException();
 		}
 
 		@Override
 		public E previous() throws NoSuchElementException {
-			throw new UnsupportedOperationException("This is slow, not implemented!");
+			throw new UnsupportedOperationException();
 		}
 
 		@Override
 		public int nextIndex() {
-			return currentIndex + 1;
+			return globalIndex + 1;
 		}
 
 		@Override
 		public int previousIndex() {
-			return currentIndex - 1;
+			return globalIndex - 1;
 		}
 
 		@Override
@@ -94,62 +92,57 @@ public class FastLinkedList<E> extends AbstractSequentialList<E>{
 
 		@Override
 		public void set(E e) {
-			currentNode.info = e;
+			currentList.internalArray.set(currentIndex, e);
 		}
 
 		@Override
 		public void add(E e) {
-			push(e);
+			currentList.push(e);
 		}
 		
 	}
 	
-	private Node head = null;
-	private Node tail = null;
-	private int size = 0;
-	
+	public FastLinkedList() {
+		this.internalArray = new ArrayList<E>();
+		this.nextList = null;
+	}
+
 	/**
-	 * Insert first operation to the linked list. TODO refactor to addFirst.
-	 * @param e the node element to insert
+	 * Add an element to list. The add position is not defined. TODO rename to "add"
+	 * @param e the node element to add
 	 */
 	public void push(E e)
 	{
-		if (head == null) {
-			head = new Node();
-			head.info = e;
-			head.next = null;
-			tail = head;
-		} else {
-			Node newNode = new Node();
-			newNode.info = e;
-			newNode.next = head;
-			head = newNode;
-		}
-		size++;
+		internalArray.add(e);
 	}
 	
 	@Override
-	public ListIterator<E> listIterator(int index) throws IndexOutOfBoundsException {
-		return new FastLinkedListIterator(index);
+	public Iterator<E> iterator() {
+		return new FastLinkedListIterator(this);
 	}
 
-	@Override
-	public int size() {
-		return size;
-	}
-	
-	@Override
-	public void clear() {
-		head = tail = null;
-	}
-	
-	public void addAll(FastLinkedList<E> other) {
-		if (head == null) {
-			this.head = other.head;
-			this.tail = other.tail;
-		} else {
-			tail.next = other.head;
+	public void addAll(FastLinkedList<E> elements) {
+		FastLinkedList<E> list = this;
+		while (list.nextList != null) {
+			list = list.nextList;
 		}
-		size += other.size;
+		list.nextList = elements;
+	}
+
+	public int size() {
+		int totalSize = 0;
+		FastLinkedList<E> list = this;
+		while (list != null) {
+			totalSize += internalArray.size();
+			list = list.nextList;
+		}
+		return totalSize;
+	}
+	
+	/**
+	 * Cleans up unused memory.
+	 */
+	public void cleanUpMemory() {
+		this.internalArray.trimToSize();
 	}
 }

@@ -49,12 +49,22 @@ public class Worker {
 		readGraph(homeDirectory + "/" + Main.TRACKS_CONF);
 		Main.globalLogger.info("Tracks done");
 		linkAngkots();
-		System.gc();
+		cleanUpMemory();
 		Main.globalLogger.info("Angkot links done");
 		long end = System.currentTimeMillis();
 		double time = (end-start)/1000.0;
 		Main.globalLogger.info("Init time = "+time+"s");
 		verbose = true;
+	}
+
+	/**
+	 * Cleans up memory used during precomputation.
+	 */
+	private void cleanUpMemory() {
+		for (GraphNode node: nodes) {
+			node.getEdges().cleanUpMemory();
+		}
+		System.gc();
 	}
 
 	private void readConfiguration(String filename)
@@ -171,7 +181,7 @@ public class Worker {
 			double distance = start.distanceTo(nodes.get(i).getLocation());
 			if (distance <= customMaximumWalkingDistance
 					&& nodes.get(i).isTransferNode()) {
-				vNodes.get(startNode).push_back(i, distance);
+				vNodes.get(startNode).push_back(i, (float)distance);
 			}
 		}
 
@@ -180,7 +190,7 @@ public class Worker {
 			double distance = finish.distanceTo(nodes.get(i).getLocation());
 			if (distance <= customMaximumWalkingDistance
 					&& nodes.get(i).isTransferNode()) {
-				vNodes.get(i).push_back(endNode, distance);
+				vNodes.get(i).push_back(endNode, (float)distance);
 			}
 		}
 
@@ -188,9 +198,9 @@ public class Worker {
 			double distance = start.distanceTo(finish);
 			if (distance <= customMaximumWalkingDistance) {
 				vNodes.get(startNode).push_back(endNode,
-						customMultiplierWalking * distance);
+						(float)(customMultiplierWalking * distance));
 				vNodes.get(endNode).push_back(startNode,
-						customMultiplierWalking * distance);
+						(float)(customMultiplierWalking * distance));
 			}
 		}
 
@@ -375,7 +385,7 @@ public class Worker {
 							double distance = node.getLocation().distanceTo(
 									track.getNode(i - 1).getLocation());
 							nodes.get(nodeIndex - 1).push_back(nodeIndex,
-									distance);
+									(float)distance);
 						}
 					}
 
@@ -394,7 +404,7 @@ public class Worker {
 						double distance = first.getLocation().distanceTo(
 								last.getLocation());
 						// pushback edge
-						nodes.get(lastIndex).push_back(firstIndex, distance);
+						nodes.get(lastIndex).push_back(firstIndex, (float)distance);
 					}
 
 					// transferNodes
@@ -432,7 +442,6 @@ public class Worker {
 	}
 
 	void linkAngkots() {
-		
 		KDTree<GraphNodeContainer> kd=new KDTree<GraphNodeContainer>(2);
 		float minLat=Float.POSITIVE_INFINITY;
 		float minLon=Float.POSITIVE_INFINITY;
@@ -501,13 +510,12 @@ public class Worker {
 					double distance = nodes.get(i).getLocation()
 							.distanceTo(near.gn.getLocation());
 					if (distance < global_maximum_transfer_distance) {
-						nodes.get(i).push_back(near.index, distance);
-						near.gn.push_back(i, distance);
+						nodes.get(i).push_back(near.index, (float)distance);
+						near.gn.push_back(i, (float)distance);
 					}
 				}
 			}
 		}
-		
 	}
 
 	public String toString() {

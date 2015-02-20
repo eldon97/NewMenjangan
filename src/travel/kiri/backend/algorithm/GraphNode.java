@@ -28,7 +28,6 @@ public class GraphNode{
 	 */
 	boolean isTransferNode;
 	
-
 	/**
 	 * Create new instance of the graph node.
 	 * @param location The latitude/longitude.
@@ -38,7 +37,7 @@ public class GraphNode{
 		this.location = location;
 		this.track = track;
 		this.isTransferNode = false;
-		edges = new FastLinkedList<GraphEdge>();		
+		edges = new FastLinkedList<GraphEdge>();
 	}
 	
 	public FastLinkedList<GraphEdge> getEdges()
@@ -46,7 +45,7 @@ public class GraphNode{
 		return edges;
 	}
 	
-	public void push_back(int node, double weight)
+	public void push_back(int node, float weight)
 	{
 		GraphEdge edge = new GraphEdge(node, weight);
 		edges.push(edge);
@@ -55,11 +54,6 @@ public class GraphNode{
 	public void link(GraphNode nextNode)
 	{
 		this.edges.addAll(nextNode.getEdges());
-	}
-	
-	public void clear()
-	{
-		edges.clear();
 	}
 	
 	public LatLon getLocation()
