@@ -31,7 +31,6 @@ public class Worker {
 	public Double global_maximum_transfer_distance;
 	public Double globalMultiplierWalking;
 	public Double globalPenaltyTransfer;
-	public boolean verbose;
 	
 	public int numberOfRequests;
 	// in millis, needs to be converted to seconds later
@@ -41,20 +40,15 @@ public class Worker {
 	Graph nodes;
 
 	public Worker(String homeDirectory) throws FileNotFoundException, IOException {
-		long start = System.currentTimeMillis();
 		tracks = new ArrayList<Track>();
 		nodes = new Graph();
 		readConfiguration(homeDirectory + "/" + Main.MJNSERVE_PROPERTIES);
-		Main.globalLogger.info("Configuration done");
+		Main.globalLogger.info("Configuration were read successfully");
 		readGraph(homeDirectory + "/" + Main.TRACKS_CONF);
-		Main.globalLogger.info("Tracks done");
+		Main.globalLogger.info("Tracks were read successfully");
 		linkAngkots();
 		cleanUpMemory();
-		Main.globalLogger.info("Angkot links done");
-		long end = System.currentTimeMillis();
-		double time = (end-start)/1000.0;
-		Main.globalLogger.info("Init time = "+time+"s");
-		verbose = true;
+		Main.globalLogger.info("Tracks were linked successfully");
 	}
 
 	/**
@@ -109,7 +103,7 @@ public class Worker {
 				+ "\n");
 		sb.append("Walking multiplier = " + globalMultiplierWalking + "\n");
 		sb.append("Transfer penalty = " + globalPenaltyTransfer + "\n");
-		sb.append("Verbose = " + verbose + "\n");
+		sb.append("Log Level = " + Main.globalLogger.getLevel() + "\n");
 
 		return sb.toString();
 	}
@@ -136,11 +130,7 @@ public class Worker {
 
 		long startTime, endTime;
 
-		if(verbose)
-		{
-			Main.globalLogger.info("Worker started for " + start + " to " + finish);
-		}
-
+		Main.globalLogger.fine("Worker started for " + start + " to " + finish);
 		
 		// thread and stuff
 		startTime = System.currentTimeMillis();
@@ -302,23 +292,9 @@ public class Worker {
 		numberOfRequests++;
 		totalProcessTime+=diff;
 		
-		if(verbose)
-		{
-			Main.globalLogger.info("Worker ended, elapsed: "+diff+" milliseconds");
-		}
+		Main.globalLogger.fine("Worker ended, elapsed: "+diff+" milliseconds");
 
 		return retval.toString();
-	}
-
-	/**
-	 * Toggle the verbose flag, determining whether extra information is to be
-	 * printed by the workers.
-	 * 
-	 * @return true if after the toggle, verbose is now turned on.
-	 */
-	String toggleVerbose() {
-		verbose = !verbose;
-		return "Verbose is now " + verbose + "\n";
 	}
 
 	/**

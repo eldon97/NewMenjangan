@@ -72,14 +72,6 @@ public class AdminListener extends AbstractHandler {
 						responseStatus = HttpStatus.SERVICE_UNAVAILABLE_503;
 						responseText = "Worker is not ready.";
 					}
-				} else if (query.equals("toggleverbose")) {
-					if (worker != null) {
-						responseStatus = HttpStatus.OK_200;
-						responseText = worker.toggleVerbose();
-					} else {
-						responseStatus = HttpStatus.SERVICE_UNAVAILABLE_503;
-						responseText = "Worker is not ready.";
-					}
 				} else if (query.equals("ping")) {
 					responseStatus = HttpStatus.OK_200;
 					responseText = "pong\n";					

@@ -2,6 +2,7 @@ package travel.kiri.backend;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -17,6 +18,7 @@ import java.util.Calendar;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.FileHandler;
+import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
@@ -28,6 +30,7 @@ public class Main {
 	public static String TRACKS_CONF = "etc/tracks.conf";
 	public static String MYSQL_PROPERTIES = "etc/mysql.properties";
 	public static String MJNSERVE_PROPERTIES = "etc/mjnserve.properties";
+	public static String LOGGING_PROPERTIES = "etc/logging.properties";
 	public static String NEWMJNSERVE_LOG = "log/newmjnserve.log";
 	
 	static NewMenjanganServer server;
@@ -57,6 +60,7 @@ public class Main {
 			System.err.println("You need to set NEWMJNSERVE_HOME first!");
 			System.exit(1);
 		}
+		LogManager.getLogManager().readConfiguration(new FileInputStream(homeDirectory + "/" + LOGGING_PROPERTIES));
 		FileHandler logFileHandler = new FileHandler(homeDirectory + "/" + NEWMJNSERVE_LOG);
 		logFileHandler.setFormatter(new SimpleFormatter());
 		globalLogger.addHandler(logFileHandler);
