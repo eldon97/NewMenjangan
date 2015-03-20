@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -44,6 +46,7 @@ public class ServiceListener extends AbstractHandler {
 	public static final String PARAMETER_MAXIMUM_WALKING = "mw";
 	public static final String PARAMETER_WALKING_MULTIPLIER = "wm";
 	public static final String PARAMETER_PENALTY_TRANSFER = "pt";
+	public static final String PARAMETER_TRACKTYPEID_BLACKLIST = "ttib";
 	
 	Worker worker;
 
@@ -86,13 +89,23 @@ public class ServiceListener extends AbstractHandler {
 			String maximumWalking = params.get(PARAMETER_MAXIMUM_WALKING);
 			String walkingMultiplier = params.get(PARAMETER_WALKING_MULTIPLIER);
 			String penaltyTransfer = params.get(PARAMETER_PENALTY_TRANSFER);
+			String trackTypeIdBlacklistString = params.get(PARAMETER_TRACKTYPEID_BLACKLIST);
+			Set<String> trackTypeIdBlacklist = null;
+			if (trackTypeIdBlacklistString != null) {
+				String[] trackTypeIdsArray = trackTypeIdBlacklistString.split(",");
+				trackTypeIdBlacklist = new HashSet<String>();
+				for (String member: trackTypeIdsArray) {
+					trackTypeIdBlacklist.add(member);
+				}
+			}
 			if(start!=null && finish!=null)
 			{
 				//findroute
 				responseText = worker.findRoute(start, finish,
 						maximumWalking == null ? null : new Double(maximumWalking),
 						walkingMultiplier == null ? null : new Double(walkingMultiplier),
-						penaltyTransfer == null ? null : new Double(penaltyTransfer));
+						penaltyTransfer == null ? null : new Double(penaltyTransfer),
+						trackTypeIdBlacklist);
 				responseCode = HttpStatus.OK_200;
 			}
 			else if(start!=null && finish==null)
@@ -109,6 +122,7 @@ public class ServiceListener extends AbstractHandler {
 			}
 			
 		} catch (Exception e) {
+			e.printStackTrace();
 			responseText = e.toString();
 			responseCode = HttpStatus.INTERNAL_SERVER_ERROR_500;
 		}

@@ -1,6 +1,7 @@
 package travel.kiri.backend.algorithm;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Merepresentasikan sebuah penghitung jarak terdekat dengan Dijkstra.
@@ -54,9 +55,10 @@ public class Dijkstra {
 	 * is run, {@link Dijkstra#getDistance(GraphNode)} will retrieve distance of each node from start
 	 * node and {@link Dijkstra#getParent(GraphNode)} will retrieve the parent of each node.
 	 * Complexity: O(|E| + |V| log |V|)
+	 * @param trackTypeIdBlacklist Set of track type ids blacklisted on navigation, or null to allow everything
 	 * @return the distance from source, or {@link Double#POSITIVE_INFINITY} if no path was found.
 	 */
-	public double runAlgorithm() {
+	public double runAlgorithm(Set<String> trackTypeIdBlacklist) {
 		
 		heapsize = 0;
 		for(int i=0;i<numOfNodes;i++)
@@ -91,7 +93,7 @@ public class Dijkstra {
 			for(GraphEdge edge : edges)
 			{
 				double weight = calculateWeight(currentNode, edge);
-				if(currentNode.distance + weight < nodeInfoLinks[edge.node].distance)
+				if(currentNode.distance + weight < nodeInfoLinks[edge.node].distance && (trackTypeIdBlacklist == null || graph.get(edge.node).track == null || !trackTypeIdBlacklist.contains(graph.get(edge.node).track.trackTypeId)))
 				{
 					nodeInfoLinks[edge.node].distance = currentNode.distance+weight;
 					nodeInfoLinks[edge.node].parent = currentNode.baseIndex;

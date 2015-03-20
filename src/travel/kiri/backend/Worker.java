@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.Scanner;
+import java.util.Set;
 
 import travel.kiri.backend.algorithm.Dijkstra;
 import travel.kiri.backend.algorithm.Graph;
@@ -116,17 +117,20 @@ public class Worker {
 	 * @param finish
 	 *            the finish location to route
 	 * @param customMaximumWalkingDistance
-	 *            the custome maximum walking distance, or null to use default
+	 *            the custom maximum walking distance, or null to use default
 	 * @param customMultiplierWalking
 	 *            the custom walking multiplier, or null to use default
 	 * @param customPenaltyTransfer
 	 *            the custom penalty transfer, or null to use default
+	 * @param trackTypeIdBlacklist
+	 *            Set of disallowed track type ids, or null to use all
 	 * @return string containing the steps, as specified in Kalapa-Dago
 	 *         protocol.
 	 */
 	public String findRoute(LatLon start, LatLon finish,
 			Double customMaximumWalkingDistance,
-			Double customMultiplierWalking, Double customPenaltyTransfer) {
+			Double customMultiplierWalking, Double customPenaltyTransfer,
+			Set<String> trackTypeIdBlacklist) {
 
 		long startTime, endTime;
 
@@ -196,7 +200,7 @@ public class Worker {
 
 		Dijkstra dijkstra = new Dijkstra(vNodes, startNode, endNode,
 				customMultiplierWalking, customPenaltyTransfer);
-		dijkstra.runAlgorithm();
+		dijkstra.runAlgorithm(trackTypeIdBlacklist);
 
 		// traversing
 		int currentNode = endNode;

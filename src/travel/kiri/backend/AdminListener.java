@@ -83,6 +83,7 @@ public class AdminListener extends AbstractHandler {
 				responseText = "Command must be provided";
 			}
 		} catch (Exception e) {
+			e.printStackTrace();
 			responseStatus = HttpStatus.INTERNAL_SERVER_ERROR_500;
 			responseText = e.toString();
 		}
