@@ -12,11 +12,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.sql.Date;
-import java.text.DateFormat;
-import java.util.Calendar;
 import java.util.Timer;
-import java.util.TimerTask;
 import java.util.logging.FileHandler;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
@@ -67,16 +63,6 @@ public class Main {
 		
 		pullData();
 		server = new NewMenjanganServer(portNumber, homeDirectory);
-
-		// Setup timer
-		Calendar nextMidnight = Calendar.getInstance();
-		nextMidnight.setTimeInMillis(nextMidnight.getTimeInMillis() + 24 * 60 * 60 * 1000);
-		nextMidnight.set(Calendar.HOUR_OF_DAY, 0);
-		nextMidnight.set(Calendar.MINUTE, 15);
-		Timer timer = new Timer(false);
-		timer.schedule(new DataRefresher(), new Date(nextMidnight.getTimeInMillis()), 24 * 60 * 60 * 1000);
-		DateFormat dateFormat = DateFormat.getInstance();
-		globalLogger.info("Data refresh timer scheduled, first time at " + dateFormat.format(new Date(nextMidnight.getTimeInMillis())));
 		
 		// Test catching TERM signal TODO remove after confirmed
 		Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -201,30 +187,5 @@ public class Main {
 			}			
 		}
 		return true;
-	}
-	
-	static class DataRefresher extends TimerTask {
-
-		@Override
-		public void run() {
-			globalLogger.info("Data refresh triggered, server reload executed!");
-			if (server != null) {
-				try {
-					if (pullData()) {
-						server.stop();
-						server = server.clone();
-						server.start();
-					} else {
-						globalLogger.info("No change in data, server not restarted.");
-					}
-				} catch (Exception e) {
-					globalLogger.severe(e.getMessage());
-					e.printStackTrace();
-				}
-			} else {
-				globalLogger.severe("Can't restart server, as server is detected inactive!");
-			}
-		}
-		
-	}
+	}	
 }
