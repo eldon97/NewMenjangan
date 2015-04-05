@@ -263,6 +263,8 @@ public class DataPuller {
 		JsonFactory factory = new JsonFactory();
 		JsonParser parser = factory.createParser(url);
 
+		List<LngLatAlt> finalCoordinates = null;
+		Boolean isPathLoop = null;
 		int lastUpdate = -1;
 		while (!parser.isClosed()) {
 			JsonToken token = parser.nextToken();
@@ -280,8 +282,6 @@ public class DataPuller {
 						Feature.class);
 				List<List<LngLatAlt>> coordinates = ((MultiLineString) feature
 						.getGeometry()).getCoordinates();
-				List<LngLatAlt> finalCoordinates;
-				boolean isPathLoop;
 				if (coordinates.size() == 0) {
 					Main.globalLogger.warning(String.format(
 							"%s.%s/%s has zero routes, will be ignored.",
@@ -322,14 +322,17 @@ public class DataPuller {
 											trackId, angkotId));
 					return null;
 				}
-				RouteResult result = formatTrack(trackTypeId, trackId,
-						finalCoordinates.toArray(new LngLatAlt[0]), isPathLoop,
-						DEFAULT_PENALTY, null, lastUpdate);
-				return result;
 			}
 		}
-		Main.globalLogger.warning("Doesn't have GeoJSON info: " + angkotId);
-		return null;
+		if (finalCoordinates != null) {
+			RouteResult result = formatTrack(trackTypeId, trackId,
+					finalCoordinates.toArray(new LngLatAlt[0]), isPathLoop,
+					DEFAULT_PENALTY, null, lastUpdate);
+			return result;
+		} else {
+			Main.globalLogger.warning("Doesn't have GeoJSON info: " + angkotId);
+			return null;
+		}
 	}
 
 	public static class RouteResult {
