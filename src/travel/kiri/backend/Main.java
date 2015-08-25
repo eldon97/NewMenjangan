@@ -141,6 +141,7 @@ public class Main {
 			return true;
 		} catch (Exception e) {
 			globalLogger.severe("Failed to refresh data: " + e.toString());
+			e.printStackTrace();
 			return false;
 		}
 	}
