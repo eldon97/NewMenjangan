@@ -30,3 +30,13 @@ Reference from http://azure.microsoft.com/blog/2014/09/02/create-your-own-dedica
     * Grant privileges `GRANT ALL PRIVILEGES ON tirtayasa.* TO 'tirtayasa'@'%';`
     * Flush privileges `FLUSH PRIVILEGES;`
 8. Fill tables using phpmyadmin
+
+## Troubleshooting Guide ##
+
+### Failed to refresh data: javax.net.ssl.SSLHandshakeException ###
+
+This app pulls data from <https://angkot.web.id>. Unfortunately in some evnironment, this app is unable to verify certificate authenticity. For a workaround (you may also not do this if there's no problem at all):
+
+1. Open <https://angkot.web.id> in your browser, and look for the certificate path.
+2. Export "GlobalSign Domain Validation CA" certificate (or whatever between root and angkot.web.id)
+3. Import this certificate to java runtime, for example `sudo keytool -import -alias globalsigndomain -file ~/globalsigndomain.cer -keystore /usr/lib/jvm/java-7-openjdk-amd64/jre/lib/security/cacerts`
