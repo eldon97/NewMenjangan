@@ -127,7 +127,6 @@ public class Main {
 			PrintStream outStream = new PrintStream(tracksConfTemp);
 			puller.pull(new File(homeDirectory + "/" + MYSQL_PROPERTIES), outStream);
 			outStream.close();
-
 			
 			if (!fileEquals(new File(tracksConf), new File(tracksConfTemp))) {
 				// Use nio library for consistent behavior across OS.

@@ -5,6 +5,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -15,7 +16,13 @@ import java.util.List;
 import java.util.Properties;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 
+import org.eclipse.jetty.client.HttpClient;
+import org.eclipse.jetty.client.api.ContentResponse;
+import org.eclipse.jetty.client.api.Request;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.geojson.Feature;
 import org.geojson.LngLatAlt;
 import org.geojson.MultiLineString;
@@ -38,7 +45,7 @@ public class DataPuller {
 	public static final double MAX_LINK_DISTANCE = 0.5;
 
 	public void pull(File sqlPropertiesFile, PrintStream output)
-			throws IOException, SQLException {
+			throws Exception {
 		Properties sqlProperties = new Properties();
 		sqlProperties.load(new FileReader(sqlPropertiesFile));
 		Connection connection = null;
@@ -63,18 +70,24 @@ public class DataPuller {
 		for (int i = 0; i < (obsoleteRoutesList.size() + ANGKOTWEBID_MAX_ROUTELIST - 1) / ANGKOTWEBID_MAX_ROUTELIST; i++) {
 			StringBuilder urlBuilder = new StringBuilder(ANGKOTWEBID_ROUTELIST_PREFIX);
 			for (int j = i * 250; j < Math.min((i + 1) * 250, obsoleteRoutesList.size()); j++) {
-				urlBuilder.append(j > i * 250 ? "|" : "");
+				urlBuilder.append(URLEncoder.encode(j > i * 250 ? "|" : "", "UTF-8"));
 				urlBuilder.append(obsoleteRoutesList.get(j));
 			}
 			Main.globalLogger.info("Fetching " + urlBuilder + "...");
+			SslContextFactory sslContextFactory = new SslContextFactory();			
+			HttpClient client = new HttpClient(sslContextFactory);
+			client.start();
+			ContentResponse response = client.GET(urlBuilder.toString());
+			client.stop();
+			String jsonText = response.getContentAsString();
 			ObjectMapper mapper = new ObjectMapper();
-			JsonNode parent = mapper.readTree(new URL(urlBuilder.toString()));
+			JsonNode parent = mapper.readTree(jsonText.toString());
 			JsonNode transportations = parent.get("transportations");
 			for (int j = 0; j < transportations.size(); j++) {
 				JsonNode transportation = transportations.get(j);
 				int updated = transportation.get("updated").asInt();
 				int id = transportation.get("id").asInt();
-				if (obsoleteRoutesMap.get(id).pathAvailable && obsoleteRoutesMap.get(id).lastUpdate >= updated) {
+				if (obsoleteRoutesMap.containsKey(id) && obsoleteRoutesMap.get(id).pathAvailable && obsoleteRoutesMap.get(id).lastUpdate >= updated) {
 					obsoleteRoutesMap.remove(id);
 				}
 			}
@@ -256,12 +269,18 @@ public class DataPuller {
 	}
 
 	private RouteResult formatTrackFromAngkotWebId(String angkotId,
-			String trackTypeId, String trackId) throws IOException {
+			String trackTypeId, String trackId) throws Exception {
 		URL url = new URL(String.format(ANGKOTWEBID_URL, angkotId));
 		Main.globalLogger.info("Fetching " + trackTypeId + "." + trackId
 				+ " from " + url + "...");
+		SslContextFactory sslContextFactory = new SslContextFactory();			
+		HttpClient client = new HttpClient(sslContextFactory);
+		client.start();
+		ContentResponse response = client.GET(url.toString());
+		client.stop();
+		String jsonText = response.getContentAsString();
 		JsonFactory factory = new JsonFactory();
-		JsonParser parser = factory.createParser(url);
+		JsonParser parser = factory.createParser(jsonText);
 
 		List<LngLatAlt> finalCoordinates = null;
 		Boolean isPathLoop = null;
