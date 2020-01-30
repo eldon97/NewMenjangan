@@ -353,8 +353,8 @@ public class Worker {
 					for (int i = 0; i < numOfNodes; i++) {
 						int nodeIndex = nodes.size();
 						// parse lat and lon
-						float lat = Float.parseFloat(scan.next());
-						float lon = Float.parseFloat(scan.next());
+						float lat = Float.parseFloat(scan.next().replaceAll(",", "."));
+						float lon = Float.parseFloat(scan.next().replaceAll(",", "."));
 						GraphNode node = new GraphNode(new LatLon(lat, lon),
 								track);
 						track.addNode(node);
