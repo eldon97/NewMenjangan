@@ -11,11 +11,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
@@ -246,9 +242,9 @@ public class DataPuller {
 				finalTextConf.append(" ");
 				finalTextMySQL.append(",");
 			}
-			finalTextConf.append(String.format("%.6f %.6f", trackString.get(i)
+			finalTextConf.append(String.format(Locale.US, "%.6f %.6f", trackString.get(i)
 					.getLatitude(), trackString.get(i).getLongitude()));
-			finalTextMySQL.append(String.format("%.6f %.6f", trackString.get(i)
+			finalTextMySQL.append(String.format(Locale.US, "%.6f %.6f", trackString.get(i)
 					.getLongitude(), trackString.get(i).getLatitude()));
 		}
 		finalTextConf.append("\t");
