@@ -13,8 +13,8 @@ All guides in Ubuntu.
 4. Clone repository (`git clone https://github.com/projectkiri/NewMenjangan.git`)
 5. Configure database parameter: set appropriate values in `~/NewMenjangan/dist/etc/mysql.properties`
 6. Test NewMenjangan that it is capable to run:
-    1. Set path to environment variable `export NEWMJNSERVE_HOME=/home/pascal/NewMenjangan/dist` (all part except `/dist` should be adjusted)
-    2. In `~/NewMenjangan/dist`, type `jar NewMenjangan.jar`
+    1. Update `dist/NewMenjangan.sh`, set the value of `NEWMJNSERVE_HOME` part into your own directory (Basically that's where your `NewMenjangan.sh` resides)
+    2. In `dist/`, type `./NewMenjangan.sh`
     3. Type `Ctrl+C` to exit
 7. Register in cronjob to execute at start
 
