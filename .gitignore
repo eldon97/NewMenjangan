@@ -1,3 +1,5 @@
 /bin
 /build
 /etc/tracks.conf.tmp
+.idea
+*.iml
